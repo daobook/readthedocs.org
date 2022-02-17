@@ -9,9 +9,7 @@ class RelatedUserQuerySet(models.QuerySet):
 
     def api(self, user=None):
         """Return objects for user."""
-        if not user.is_authenticated:
-            return self.none()
-        return self.filter(users=user)
+        return self.none() if not user.is_authenticated else self.filter(users=user)
 
 
 class RemoteRepositoryQuerySet(RelatedUserQuerySet):

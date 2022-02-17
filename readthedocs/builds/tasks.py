@@ -94,13 +94,14 @@ class TaskRouter:
         # We always want the same queue as the previous default version,
         # so that users will have the same outcome for PR's as normal builds.
         if version.type == EXTERNAL:
-            last_build_for_default_version = (
-                project.builds
-                .filter(version__slug=project.get_default_version(), builder__isnull=False)
+            if last_build_for_default_version := (
+                project.builds.filter(
+                    version__slug=project.get_default_version(),
+                    builder__isnull=False,
+                )
                 .order_by('-date')
                 .first()
-            )
-            if last_build_for_default_version:
+            ):
                 if 'default' in last_build_for_default_version.builder:
                     routing_queue = self.BUILD_DEFAULT_QUEUE
                 else:
@@ -124,11 +125,12 @@ class TaskRouter:
             )
             conda = build.config.get('conda', None)
 
-            uses_conda = any([
-                conda,
-                build_tools_python.startswith('miniconda'),
-            ])
-            if uses_conda:
+            if uses_conda := any(
+                [
+                    conda,
+                    build_tools_python.startswith('miniconda'),
+                ]
+            ):
                 log.info(
                     'Routing task because project uses conda.',
                     project_slug=project.slug,
@@ -212,8 +214,7 @@ def archive_builds_task(days=14, limit=200, include_cold=False, delete=False):
     queryset = queryset.filter(date__lt=max_date)[:limit]
 
     for build in queryset:
-        data = BuildSerializer(build).data['commands']
-        if data:
+        if data := BuildSerializer(build).data['commands']:
             for cmd in data:
                 if len(cmd['output']) > MAX_BUILD_COMMAND_SIZE:
                     cmd['output'] = cmd['output'][-MAX_BUILD_COMMAND_SIZE:]
@@ -247,8 +248,7 @@ def delete_inactive_external_versions(limit=200, days=30 * 3):
     )[:limit]
     for version in queryset:
         try:
-            last_build = version.last_build
-            if last_build:
+            if last_build := version.last_build:
                 status = BUILD_STATUS_PENDING
                 if last_build.finished:
                     status = BUILD_STATUS_SUCCESS if last_build.success else BUILD_STATUS_FAILURE
@@ -422,15 +422,12 @@ def send_build_status(build_pk, commit, status, link_to_build=False):
             # Try to loop through all remote repository relations for the projects users
             for relation in remote_repository_relations:
                 service = service_class(relation.user, relation.account)
-                # Send status report using the API.
-                success = service.send_build_status(
+                if success := service.send_build_status(
                     build=build,
                     commit=commit,
                     state=status,
                     link_to_build=link_to_build,
-                )
-
-                if success:
+                ):
                     log.debug(
                         'Build status report sent correctly.',
                         user_username=relation.user.username,
@@ -444,8 +441,9 @@ def send_build_status(build_pk, commit, status, link_to_build=False):
                 # Try to loop through services for users all social accounts
                 # to send successful build status
                 for service in services:
-                    success = service.send_build_status(build, commit, status)
-                    if success:
+                    if success := service.send_build_status(
+                        build, commit, status
+                    ):
                         log.debug(
                             'Build status report sent correctly using an user account.',
                             user_username=user.username,

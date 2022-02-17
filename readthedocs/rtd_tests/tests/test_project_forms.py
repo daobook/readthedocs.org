@@ -151,8 +151,9 @@ class TestProjectForms(TestCase):
         data = {
             'documentation_type': 'sphinx',
             'language': 'en',
+            'tags': '{},{}'.format('a' * 50, 'b' * 99),
         }
-        data['tags'] = '{},{}'.format('a'*50, 'b'*99)
+
         form = ProjectExtraForm(data)
         self.assertTrue(form.is_valid())
 

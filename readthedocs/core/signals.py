@@ -44,7 +44,7 @@ def _has_donate_app():
     return 'readthedocsext.donate' in settings.INSTALLED_APPS
 
 
-def decide_if_cors(sender, request, **kwargs):  # pylint: disable=unused-argument
+def decide_if_cors(sender, request, **kwargs):    # pylint: disable=unused-argument
     """
     Decide whether a request should be given CORS access.
 
@@ -70,15 +70,11 @@ def decide_if_cors(sender, request, **kwargs):  # pylint: disable=unused-argumen
     if _has_donate_app() and request.path_info.startswith('/api/v2/sustainability'):
         return True
 
-    valid_url = None
-    for url in ALLOWED_URLS:
-        if request.path_info.startswith(url):
-            valid_url = url
-            break
-
-    if valid_url:
-        url = request.GET.get('url')
-        if url:
+    if valid_url := next(
+        (url for url in ALLOWED_URLS if request.path_info.startswith(url)),
+        None,
+    ):
+        if url := request.GET.get('url'):
             unresolved = unresolve(url)
             if unresolved is None:
                 # NOTE: Embed APIv3 now supports external sites. In that case
@@ -94,20 +90,14 @@ def decide_if_cors(sender, request, **kwargs):  # pylint: disable=unused-argumen
             project = Project.objects.filter(slug=project_slug).first()
 
         if project and version_slug:
-            # This is from IsAuthorizedToViewVersion,
-            # we should abstract is a bit perhaps?
-            is_public = (
-                Version.objects
-                .public(
+            if is_public := (
+                Version.objects.public(
                     project=project,
                     only_active=False,
                 )
                 .filter(slug=version_slug)
                 .exists()
-            )
-            # Allowing CORS on public versions,
-            # since they are already public.
-            if is_public:
+            ):
                 return True
 
     return False
@@ -135,13 +125,11 @@ def add_extra_historical_fields(sender, **kwargs):
     if not history_instance:
         return
 
-    history_user = kwargs['history_user']
-    if history_user:
+    if history_user := kwargs['history_user']:
         history_instance.extra_history_user_id = history_user.id
         history_instance.extra_history_user_username = history_user.username
 
-    request = getattr(HistoricalRecords.context, 'request', None)
-    if request:
+    if request := getattr(HistoricalRecords.context, 'request', None):
         history_instance.extra_history_ip = get_client_ip(request)
         history_instance.extra_history_browser = request.headers.get('User-Agent')
 

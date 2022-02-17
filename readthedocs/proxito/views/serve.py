@@ -60,7 +60,7 @@ class ServeDocsBase(ServeRedirectMixin, ServeDocsMixin, View):
             lang_slug=None,
             version_slug=None,
             filename='',
-    ):  # noqa
+    ):    # noqa
         """
         Take the incoming parsed URL's and figure out what file to serve.
 
@@ -87,9 +87,7 @@ class ServeDocsBase(ServeRedirectMixin, ServeDocsMixin, View):
         )
         log.debug('Serving docs.')
 
-        # Verify if the project is marked as spam and return a 401 in that case
-        spam_response = self._spam_response(request, final_project)
-        if spam_response:
+        if spam_response := self._spam_response(request, final_project):
             return spam_response
 
         # Handle requests that need canonicalizing (eg. HTTP -> HTTPS, redirect to canonical domain)
@@ -368,16 +366,16 @@ class ServeRobotsTXTBase(ServeDocsMixin, View):
         version_slug = project.get_default_version()
         version = project.versions.get(slug=version_slug)
 
-        no_serve_robots_txt = any([
-            # If the default version is private or,
-            version.privacy_level == constants.PRIVATE,
-            # default version is not active or,
-            not version.active,
-            # default version is not built
-            not version.built,
-        ])
-
-        if no_serve_robots_txt:
+        if no_serve_robots_txt := any(
+            [
+                # If the default version is private or,
+                version.privacy_level == constants.PRIVATE,
+                # default version is not active or,
+                not version.active,
+                # default version is not built
+                not version.built,
+            ]
+        ):
             # ... we do return a 404
             raise Http404()
 
@@ -424,11 +422,10 @@ class ServeRobotsTXTBase(ServeDocsMixin, View):
             Version.internal.public(project=project)
             .filter(hidden=True)
         )
-        hidden_paths = [
+        return [
             resolve_path(project, version_slug=version.slug)
             for version in hidden_versions
         ]
-        return hidden_paths
 
 
 class ServeRobotsTXT(SettingsOverrideObject):
@@ -479,9 +476,7 @@ class ServeSitemapXMLBase(View):
             Use hyphen instead of underscore in language and country value.
             ref: https://en.wikipedia.org/wiki/Hreflang#Common_Mistakes
             """
-            if '_' in lang:
-                return lang.replace('_', '-')
-            return lang
+            return lang.replace('_', '-') if '_' in lang else lang
 
         def changefreqs_generator():
             """

@@ -34,13 +34,10 @@ def project_and_path_from_request(request, path):
     if hasattr(request, 'slug'):
         project_slug = request.slug
     elif path.startswith('/docs/'):
-        # In this case we use the docs without subdomains. So let's strip the
-        # docs prefix.
-        match = re.match(
+        if match := re.match(
             r'^/docs/(?P<project_slug>[^/]+)(?P<path>/.*)$',
             path,
-        )
-        if match:
+        ):
             project_slug = match.groupdict()['project_slug']
             path = match.groupdict()['path']
         else:
@@ -56,11 +53,11 @@ def project_and_path_from_request(request, path):
 
 
 def language_and_version_from_path(path):
-    match = re.match(
-        r'^/(?P<language>%s)/(?P<version_slug>[^/]+)(?P<path>/.*)$' % LANGUAGES_REGEX,
+    if match := re.match(
+        r'^/(?P<language>%s)/(?P<version_slug>[^/]+)(?P<path>/.*)$'
+        % LANGUAGES_REGEX,
         path,
-    )
-    if match:
+    ):
         language = match.groupdict()['language']
         version_slug = match.groupdict()['version_slug']
         path = match.groupdict()['path']

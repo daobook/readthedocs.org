@@ -81,7 +81,10 @@ exclude_patterns = ['_build']
 default_role = 'obj'
 intersphinx_mapping = {
     'python': ('https://docs.python.org/3.6/', None),
-    'django': ('https://docs.djangoproject.com/en/2.2/', 'https://docs.djangoproject.com/en/2.2/_objects/'),
+    'django': (
+        'https://docs.djangoproject.com/en/2.2/',
+        'https://docs.djangoproject.com/en/2.2/_objects/',
+    ),
     'sphinx': ('https://www.sphinx-doc.org/en/master/', None),
     'pip': ('https://pip.pypa.io/en/stable/', None),
     'nbsphinx': ('https://nbsphinx.readthedocs.io/en/0.8.6/', None),
@@ -91,7 +94,6 @@ intersphinx_mapping = {
     'ipyleaflet': ('https://ipyleaflet.readthedocs.io/en/stable/', None),
     'poliastro': ('https://docs.poliastro.space/en/v0.15.2/', None),
     'qiskit': ('https://qiskit.org/documentation/', None),
-    'myst-parser': ('https://myst-parser.readthedocs.io/en/v0.15.1/', None),
     'writethedocs': ('https://www.writethedocs.org/', None),
     'jupyterbook': ('https://jupyterbook.org/', None),
     'myst-parser': ('https://myst-parser.readthedocs.io/en/v0.15.1/', None),
@@ -99,6 +101,7 @@ intersphinx_mapping = {
     'rtd': ('https://docs.readthedocs.io/en/stable/', None),
     'rtd-dev': ('https://dev.readthedocs.io/en/latest/', None),
 }
+
 myst_enable_extensions = [
     "deflist",
 ]
@@ -200,4 +203,4 @@ linkcheck_ignore = [
 
 
 def setup(app):
-    app.srcdir += '/' + docset
+    app.srcdir += f'/{docset}'

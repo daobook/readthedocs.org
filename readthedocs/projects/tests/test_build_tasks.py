@@ -1344,5 +1344,5 @@ class TestSyncRepositoryTask(BuildEnvironmentBase):
         )
 
         exception = on_failure.call_args[0][0]
-        assert isinstance(exception, RepositoryError) == True
+        assert isinstance(exception, RepositoryError)
         assert exception.message == RepositoryError.DUPLICATED_RESERVED_VERSIONS

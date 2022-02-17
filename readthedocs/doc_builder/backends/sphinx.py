@@ -156,10 +156,7 @@ class BaseSphinx(BaseBuilder):
             protocol = 'http' if settings.DEBUG else 'https'
             build_url = f'{protocol}://{settings.PRODUCTION_DOMAIN}{build_url}'
 
-        vcs_url = None
-        if self.version.is_external:
-            vcs_url = self.version.vcs_url
-
+        vcs_url = self.version.vcs_url if self.version.is_external else None
         commit = (
             self.project.vcs_repo(
                 version=self.version.slug,
@@ -518,16 +515,7 @@ class PdfBuilder(BaseSphinx):
         for extension in ('png', 'gif', 'jpg', 'jpeg'):
             images.extend(latex_path.glob(f'*.{extension}'))
 
-        # FIXME: instead of checking by language here, what we want to check if
-        # ``latex_engine`` is ``platex``
-        pdfs = []
-        if self.project.language == 'ja':
-            # Japanese language is the only one that requires this extra
-            # step. I don't know exactly why but most of the documentation that
-            # I read differentiate this language from the others. I suppose
-            # it's because it mix kanji (Chinese) with its own symbols.
-            pdfs = latex_path.glob('*.pdf')
-
+        pdfs = latex_path.glob('*.pdf') if self.project.language == 'ja' else []
         for image in itertools.chain(images, pdfs):
             self.run(
                 'extractbb',
@@ -536,10 +524,7 @@ class PdfBuilder(BaseSphinx):
                 record=False,
             )
 
-        rcfile = 'latexmkrc'
-        if self.project.language == 'ja':
-            rcfile = 'latexmkjarc'
-
+        rcfile = 'latexmkjarc' if self.project.language == 'ja' else 'latexmkrc'
         self.run(
             'cat',
             rcfile,
@@ -620,8 +605,7 @@ class PdfBuilder(BaseSphinx):
                 cwd=latex_cwd,
                 warn_only=True,
             )
-            pdf_match = PDF_RE.search(cmd_ret.output)
-            if pdf_match:
+            if pdf_match := PDF_RE.search(cmd_ret.output):
                 self.pdf_file_name = pdf_match.group(1).strip()
             pdf_commands.append(cmd_ret)
         return all(cmd.successful for cmd in pdf_commands)
@@ -645,12 +629,10 @@ class PdfBuilder(BaseSphinx):
             from_file = exact
         elif os.path.exists(exact_upper):
             from_file = exact_upper
+        elif from_globs := glob(os.path.join(self.old_artifact_path, '*.pdf')):
+            from_file = max(from_globs, key=os.path.getmtime)
         else:
-            from_globs = glob(os.path.join(self.old_artifact_path, '*.pdf'))
-            if from_globs:
-                from_file = max(from_globs, key=os.path.getmtime)
-            else:
-                from_file = None
+            from_file = None
         if from_file:
             to_file = os.path.join(
                 self.target,

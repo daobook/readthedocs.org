@@ -20,7 +20,7 @@ from readthedocs.builds.models import RegexAutomationRule, Version
 log = structlog.get_logger(__name__)
 
 
-def sync_versions_to_db(project, versions, type):  # pylint: disable=redefined-builtin
+def sync_versions_to_db(project, versions, type):    # pylint: disable=redefined-builtin
     """
     Update the database with the current versions from the repository.
 
@@ -97,18 +97,16 @@ def sync_versions_to_db(project, versions, type):  # pylint: disable=redefined-b
     added.update(_create_versions(project, type, versions_to_create))
 
     if not has_user_stable:
-        stable_version = (
+        if stable_version := (
             project.versions.filter(slug=STABLE, type=type).first()
-        )
-        if stable_version:
+        ):
             # Put back the RTD's stable version
             stable_version.machine = True
             stable_version.save()
     if not has_user_latest:
-        latest_version = (
+        if latest_version := (
             project.versions.filter(slug=LATEST, type=type).first()
-        )
-        if latest_version:
+        ):
             # Put back the RTD's latest version
             latest_version.machine = True
             latest_version.identifier = project.get_default_branch()

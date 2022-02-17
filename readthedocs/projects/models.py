@@ -472,8 +472,8 @@ class Project(models.Model):
         if not self.slug:
             # Subdomains can't have underscores in them.
             self.slug = slugify(self.name)
-            if not self.slug:
-                raise Exception(_('Model must have slug'))
+        if not self.slug:
+            raise Exception(_('Model must have slug'))
         super().save(*args, **kwargs)
         try:
             latest = self.versions.filter(slug=LATEST).first()
@@ -547,11 +547,10 @@ class Project(models.Model):
         :return: the path to an item in storage
                  (can be used with ``storage.url`` to get the URL).
         """
-        storage_paths = [
+        return [
             f'{type_}/{self.slug}'
             for type_ in MEDIA_TYPES
         ]
-        return storage_paths
 
     def get_storage_path(
             self,
@@ -600,14 +599,11 @@ class Project(models.Model):
         # accessed from Web instance
 
         main_project = self.main_language_project or self
-        if main_project.is_subproject:
-            # docs.example.com/_/downloads/<alias>/<lang>/<ver>/pdf/
-            path = f'//{domain}/{self.proxied_api_url}downloads/{main_project.alias}/{self.language}/{version_slug}/{type_}/'  # noqa
-        else:
-            # docs.example.com/_/downloads/<lang>/<ver>/pdf/
-            path = f'//{domain}/{self.proxied_api_url}downloads/{self.language}/{version_slug}/{type_}/'  # noqa
-
-        return path
+        return (
+            f'//{domain}/{self.proxied_api_url}downloads/{main_project.alias}/{self.language}/{version_slug}/{type_}/'
+            if main_project.is_subproject
+            else f'//{domain}/{self.proxied_api_url}downloads/{self.language}/{version_slug}/{type_}/'
+        )
 
     @property
     def proxied_api_host(self):
@@ -745,16 +741,12 @@ class Project(models.Model):
         return resolve_domain(self)
 
     def get_downloads(self):
-        downloads = {}
         default_version = self.get_default_version()
 
-        for type_ in ('htmlzip', 'epub', 'pdf'):
-            downloads[type_] = self.get_production_media_url(
+        return {type_: self.get_production_media_url(
                 type_,
                 default_version,
-            )
-
-        return downloads
+            ) for type_ in ('htmlzip', 'epub', 'pdf')}
 
     @property
     def clean_repo(self):
@@ -775,11 +767,14 @@ class Project(models.Model):
     def full_doc_path(self, version=LATEST):
         """The path to the documentation root in the project."""
         doc_base = self.checkout_path(version)
-        for possible_path in ['docs', 'doc', 'Doc']:
-            if os.path.exists(os.path.join(doc_base, '%s' % possible_path)):
-                return os.path.join(doc_base, '%s' % possible_path)
-        # No docs directory, docs are at top-level.
-        return doc_base
+        return next(
+            (
+                os.path.join(doc_base, '%s' % possible_path)
+                for possible_path in ['docs', 'doc', 'Doc']
+                if os.path.exists(os.path.join(doc_base, '%s' % possible_path))
+            ),
+            doc_base,
+        )
 
     def artifact_path(self, type_, version=LATEST):
         """The path to the build html docs in the project."""
@@ -811,8 +806,7 @@ class Project(models.Model):
 
     def full_json_path(self, version=LATEST):
         """The path to the build json docs in the project."""
-        json_path = os.path.join(self.conf_dir(version), '_build', 'json')
-        return json_path
+        return os.path.join(self.conf_dir(version), '_build', 'json')
 
     def full_singlehtml_path(self, version=LATEST):
         """The path to the build singlehtml docs in the project."""
@@ -861,8 +855,7 @@ class Project(models.Model):
         raise ProjectConfigurationError(ProjectConfigurationError.NOT_FOUND)
 
     def conf_dir(self, version=LATEST):
-        conf_file = self.conf_file(version)
-        if conf_file:
+        if conf_file := self.conf_file(version):
             return os.path.dirname(conf_file)
 
     @property
@@ -920,14 +913,10 @@ class Project(models.Model):
         # instance here)
 
         backend = self.vcs_class()
-        if not backend:
-            repo = None
-        else:
-            repo = backend(
+        return None if not backend else backend(
                 self, version, environment=environment,
                 verbose_name=verbose_name, version_type=version_type
             )
-        return repo
 
     def vcs_class(self):
         """
@@ -954,8 +943,7 @@ class Project(models.Model):
     @property
     def git_provider_name(self):
         """Get the provider name for project. e.g: GitHub, GitLab, BitBucket."""
-        service = self.git_service_class()
-        if service:
+        if service := self.git_service_class():
             provider = allauth_registry.by_id(service.adapter.provider_id)
             return provider.name
         return None
@@ -969,8 +957,11 @@ class Project(models.Model):
         """
         matches = []
         for root, __, filenames in os.walk(self.full_doc_path(version)):
-            for match in fnmatch.filter(filenames, filename):
-                matches.append(os.path.join(root, match))
+            matches.extend(
+                os.path.join(root, match)
+                for match in fnmatch.filter(filenames, filename)
+            )
+
         return matches
 
     def full_find(self, filename, version):
@@ -982,8 +973,11 @@ class Project(models.Model):
         """
         matches = []
         for root, __, filenames in os.walk(self.checkout_path(version)):
-            for match in fnmatch.filter(filenames, filename):
-                matches.append(os.path.join(root, match))
+            matches.extend(
+                os.path.join(root, match)
+                for match in fnmatch.filter(filenames, filename)
+            )
+
         return matches
 
     def get_latest_build(self, finished=True):
@@ -995,10 +989,7 @@ class Project(models.Model):
         # Check if there is `_latest_build` attribute in the Queryset.
         # Used for Database optimization.
         if hasattr(self, self.LATEST_BUILD_CACHE):
-            if self._latest_build:
-                return self._latest_build[0]
-            return None
-
+            return self._latest_build[0] if self._latest_build else None
         kwargs = {'type': 'html'}
         if finished:
             kwargs['state'] = 'finished'
@@ -1080,13 +1071,10 @@ class Project(models.Model):
         current_stable = self.get_stable_version()
         if not current_stable or not current_stable.machine:
             return None
-        # Several tags can point to the same identifier.
-        # Return the stable one.
-        original_stable = determine_stable_version(
+        return determine_stable_version(
             self.versions(manager=INTERNAL)
             .filter(identifier=current_stable.identifier)
         )
-        return original_stable
 
     def update_stable_version(self):
         """
@@ -1103,13 +1091,11 @@ class Project(models.Model):
             return None
 
         versions = self.versions(manager=INTERNAL).all()
-        new_stable = determine_stable_version(versions)
-        if new_stable:
+        if new_stable := determine_stable_version(versions):
             if current_stable:
-                identifier_updated = (
+                if identifier_updated := (
                     new_stable.identifier != current_stable.identifier
-                )
-                if identifier_updated:
+                ):
                     log.info(
                         'Update stable version: %(project)s:%(version)s',
                         {
@@ -1163,9 +1149,7 @@ class Project(models.Model):
 
     def get_default_branch(self):
         """Get the version representing 'latest'."""
-        if self.default_branch:
-            return self.default_branch
-        return self.vcs_class().fallback_branch
+        return self.default_branch or self.vcs_class().fallback_branch
 
     def add_subproject(self, child, alias=None):
         subproject, _ = ProjectRelationship.objects.get_or_create(
@@ -1186,20 +1170,14 @@ class Project(models.Model):
         """
         if hasattr(self, '_superprojects'):
             # Cached parent project relationship
-            if self._superprojects:
-                return self._superprojects[0]
-            return None
-
+            return self._superprojects[0] if self._superprojects else None
         return self.superprojects.select_related('parent').first()
 
     def get_canonical_custom_domain(self):
         """Get the canonical custom domain or None."""
         if hasattr(self, '_canonical_domains'):
             # Cached custom domains
-            if self._canonical_domains:
-                return self._canonical_domains[0]
-            return None
-
+            return self._canonical_domains[0] if self._canonical_domains else None
         return self.domains.filter(canonical=True).first()
 
     @property
@@ -1286,14 +1264,13 @@ class Project(models.Model):
         Both projects need to share the same owner/admin.
         """
         organization = self.organizations.first()
-        queryset = (
+        return (
             Project.objects.for_admin_user(user)
             .filter(organizations=organization)
             .exclude(subprojects__isnull=False)
             .exclude(superprojects__isnull=False)
             .exclude(pk=self.pk)
         )
-        return queryset
 
 
 class APIProject(Project):

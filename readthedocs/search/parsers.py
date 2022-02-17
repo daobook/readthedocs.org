@@ -50,13 +50,11 @@ class BaseParser:
         The title is the first section in the document,
         falling back to the ``title`` tag.
         """
-        first_header = body.css_first('h1')
-        if first_header:
+        if first_header := body.css_first('h1'):
             title, _ = self._parse_section_title(first_header)
             return title
 
-        title = html.css_first('title')
-        if title:
+        if title := html.css_first('title'):
             return self._parse_content(title.text())
 
         return None
@@ -75,18 +73,13 @@ class BaseParser:
           so they are children of the same parent node.
         """
         body = html.body
-        main_node = body.css_first('[role=main]')
-        if main_node:
+        if main_node := body.css_first('[role=main]'):
             return main_node
 
-        main_node = body.css_first('main')
-        if main_node:
+        if main_node := body.css_first('main'):
             return main_node
 
-        # TODO: this could be done in smarter way,
-        # checking for common parents between all h nodes.
-        first_header = body.css_first('h1')
-        if first_header:
+        if first_header := body.css_first('h1'):
             return first_header.parent
 
         return None
@@ -187,8 +180,7 @@ class BaseParser:
 
         The tag is a section if it's a ``h`` tag.
         """
-        is_header_tag = re.match(r'h\d$', tag.tag)
-        return is_header_tag
+        return re.match(r'h\d$', tag.tag)
 
     def _parse_section_title(self, tag):
         """
@@ -260,10 +252,10 @@ class BaseParser:
         if not tag.css_first('pre'):
             return False
 
-        for c in tag.attributes.get('class', '').split():
-            if c.startswith('highlight'):
-                return True
-        return False
+        return any(
+            c.startswith('highlight')
+            for c in tag.attributes.get('class', '').split()
+        )
 
     def _parse_code_section(self, tag):
         """
@@ -464,8 +456,7 @@ class SphinxParser(BaseParser):
             # because these tags go together.
             for title, desc in zip(dt, dd):
                 try:
-                    id_ = title.attributes.get('id', '')
-                    if id_:
+                    if id_ := title.attributes.get('id', ''):
                         docstrings = self._parse_domain_tag(desc)
                         domain_data[id_] = docstrings
                         number_of_domains += 1
@@ -492,8 +483,7 @@ class SphinxParser(BaseParser):
         for node in nodes_to_be_removed:
             node.decompose()
 
-        docstring = self._parse_content(tag.text())
-        return docstring
+        return self._parse_content(tag.text())
 
 
 class MkDocsParser(BaseParser):
@@ -513,8 +503,7 @@ class MkDocsParser(BaseParser):
 
     def parse_from_html(self, page):
         try:
-            content = self._get_page_content(page)
-            if content:
+            if content := self._get_page_content(page):
                 return self._process_content(page, content)
         except Exception as e:
             log.info('Failed to index page.', path=page, exception=str(e))
@@ -555,8 +544,7 @@ class MkDocsParser(BaseParser):
         try:
             file_path = self.storage.join(storage_path, 'search/search_index.json')
             if self.storage.exists(file_path):
-                index_data = self._process_index_file(file_path, page=page)
-                if index_data:
+                if index_data := self._process_index_file(file_path, page=page):
                     return index_data
         except Exception:
             log.warning(

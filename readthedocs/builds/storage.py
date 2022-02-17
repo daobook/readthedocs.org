@@ -188,9 +188,7 @@ class BuildMediaFileSystemStorage(BuildMediaStorageMixin, FileSystemStorage):
 
         This mimics what cloud storages do.
         """
-        if not self.exists(path):
-            return [], []
-        return super().listdir(path)
+        return ([], []) if not self.exists(path) else super().listdir(path)
 
     def url(self, name, *args, **kwargs):  # noqa
         """

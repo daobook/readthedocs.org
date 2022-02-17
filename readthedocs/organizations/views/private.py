@@ -178,8 +178,7 @@ class OrganizationSecurityLogBase(PrivateViewMixin, OrganizationMixin, ListView)
     template_name = 'organizations/security_log.html'
 
     def get(self, request, *args, **kwargs):
-        download_data = request.GET.get('download', False)
-        if download_data:
+        if download_data := request.GET.get('download', False):
             return self._get_csv_data()
         return super().get(request, *args, **kwargs)
 
@@ -200,8 +199,7 @@ class OrganizationSecurityLogBase(PrivateViewMixin, OrganizationMixin, ListView)
 
         start_date = self._get_start_date()
         end_date = timezone.now().date()
-        date_filter = self.filter.form.cleaned_data.get('date')
-        if date_filter:
+        if date_filter := self.filter.form.cleaned_data.get('date'):
             start_date = date_filter.start or start_date
             end_date = date_filter.stop or end_date
 
@@ -244,7 +242,7 @@ class OrganizationSecurityLogBase(PrivateViewMixin, OrganizationMixin, ListView)
         if not self._is_enabled(organization):
             return AuditLog.objects.none()
         start_date = self._get_start_date()
-        queryset = AuditLog.objects.filter(
+        return AuditLog.objects.filter(
             log_organization_id=organization.id,
             action__in=[
                 AuditLog.AUTHN,
@@ -254,7 +252,6 @@ class OrganizationSecurityLogBase(PrivateViewMixin, OrganizationMixin, ListView)
             ],
             created__gte=start_date,
         )
-        return queryset
 
     def get_queryset(self):
         """

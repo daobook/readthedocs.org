@@ -122,9 +122,7 @@ class PageDocument(RTDDocTypeMixin, Document):
         ignore_signals = True
 
     def prepare_rank(self, html_file):
-        if not (-10 <= html_file.rank <= 10):
-            return 0
-        return html_file.rank
+        return 0 if not (-10 <= html_file.rank <= 10) else html_file.rank
 
     def prepare_domains(self, html_file):
         """Prepares and returns the values for domains field."""

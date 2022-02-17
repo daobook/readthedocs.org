@@ -12,8 +12,7 @@ def forwards_func(apps, schema_editor):
     """
     AuditLog = apps.get_model('audit', 'AuditLog')
     for auditlog in AuditLog.objects.all().iterator():
-        ip = auditlog.ip
-        if ip:
+        if ip := auditlog.ip:
             ip = ip.split('/', maxsplit=1)[0]
             auditlog.ip = ip
             auditlog.save()

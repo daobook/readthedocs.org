@@ -56,15 +56,14 @@ def _get_project_data_from_request(
     current_project = subproject or project
 
     # Handle single-version projects that have URLs like a real project
-    if current_project.single_version:
-        if lang_slug and version_slug:
-            filename = os.path.join(lang_slug, version_slug, filename)
-            log.warning(
-                'URL looks like versioned on a single version project.'
-                'Changing filename to match.',
-                filename=filename,
-            )
-            lang_slug = version_slug = None
+    if current_project.single_version and lang_slug and version_slug:
+        filename = os.path.join(lang_slug, version_slug, filename)
+        log.warning(
+            'URL looks like versioned on a single version project.'
+            'Changing filename to match.',
+            filename=filename,
+        )
+        lang_slug = version_slug = None
 
     # Check to see if we need to serve a translation
     if not lang_slug or lang_slug == current_project.language:

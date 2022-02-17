@@ -48,8 +48,7 @@ def load_yaml_config(version):
             'doctype': project.documentation_type,
         },
     }
-    img_settings = DOCKER_IMAGE_SETTINGS.get(img_name, None)
-    if img_settings:
+    if img_settings := DOCKER_IMAGE_SETTINGS.get(img_name, None):
         env_config.update(img_settings)
 
     try:

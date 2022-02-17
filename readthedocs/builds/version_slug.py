@@ -141,13 +141,10 @@ class VersionSlugField(models.CharField):
         """
         alphabet = string.ascii_lowercase
         length = len(alphabet)
-        if iteration == 0:
-            power = 0
-        else:
-            power = int(math.log(iteration, length))
+        power = 0 if iteration == 0 else int(math.log(iteration, length))
         current = iteration
         suffix = ''
-        for exp in reversed(list(range(0, power + 1))):
+        for exp in reversed(list(range(power + 1))):
             digit = int(truediv(current, length ** exp))
             suffix += alphabet[digit]
             current = current % length ** exp

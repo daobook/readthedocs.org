@@ -112,9 +112,7 @@ class URLAccessMixin:
         deconstructed_urls = extract_views_from_urlpatterns(urlpatterns)
         added_kwargs = {}
 
-        # we need to format urls with proper ids
-        url_ctx = self.get_url_path_ctx()
-        if url_ctx:
+        if url_ctx := self.get_url_path_ctx():
             self.response_data = {
                 url.format(**url_ctx): data for url, data in self.response_data.items()
             }

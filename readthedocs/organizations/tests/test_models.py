@@ -28,7 +28,7 @@ class InviteTests(TestCase):
         self.assertEqual(old_hash, invite.hash)
 
         # Changing keyed fields doesn't
-        invite.email = 'foo+' + invite.email
+        invite.email = f'foo+{invite.email}'
         invite.save()
         self.assertNotEqual(old_hash, invite.hash)
 

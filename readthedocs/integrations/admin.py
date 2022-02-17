@@ -18,7 +18,7 @@ def pretty_json_field(field, description, include_styles=False):
         styles = ''
         if include_styles:
             formatter = HtmlFormatter(style='colorful')
-            styles = '<style>' + formatter.get_style_defs() + '</style>'
+            styles = f'<style>{formatter.get_style_defs()}</style>'
         return mark_safe(
             '<div style="{}">{}</div>{}'.format(
                 'float: left;',

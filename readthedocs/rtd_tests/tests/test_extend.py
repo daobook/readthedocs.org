@@ -26,9 +26,9 @@ class NewFoo(FooBase):
         return 2
 
 
-EXTEND_PATH = __name__ + '.Foo'
-EXTEND_BASE_PATH = __name__ + '.FooBase'
-EXTEND_OVERRIDE_PATH = __name__ + '.NewFoo'
+EXTEND_PATH = f'{__name__}.Foo'
+EXTEND_BASE_PATH = f'{__name__}.FooBase'
+EXTEND_OVERRIDE_PATH = f'{__name__}.NewFoo'
 
 
 class ExtendTests(TestCase):

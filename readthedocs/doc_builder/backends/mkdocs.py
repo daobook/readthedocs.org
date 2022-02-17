@@ -206,10 +206,12 @@ class BaseMkdocs(BaseBuilder):
 
         # README: make MkDocs to use ``readthedocs`` theme as default if the
         # user didn't specify a specific theme manually
-        if self.project.has_feature(Feature.MKDOCS_THEME_RTD):
-            if 'theme' not in user_config:
-                # mkdocs<0.17 syntax
-                user_config['theme'] = self.DEFAULT_THEME_NAME
+        if (
+            self.project.has_feature(Feature.MKDOCS_THEME_RTD)
+            and 'theme' not in user_config
+        ):
+            # mkdocs<0.17 syntax
+            user_config['theme'] = self.DEFAULT_THEME_NAME
 
         # Write the modified mkdocs configuration
         yaml_dump_safely(
@@ -317,8 +319,7 @@ class BaseMkdocs(BaseBuilder):
             # A string which is the name of the theme
             return theme_setting
 
-        theme_dir = mkdocs_config.get('theme_dir')
-        if theme_dir:
+        if theme_dir := mkdocs_config.get('theme_dir'):
             # Use the name of the directory in this project's custom theme directory
             return theme_dir.rstrip('/').split('/')[-1]
 

@@ -42,8 +42,7 @@ class UpdateChangeReasonMixin:
 
     def perform_update(self, serializer):
         set_change_reason(serializer.instance, self.get_change_reason())
-        obj = serializer.save()
-        return obj
+        return serializer.save()
 
     def perform_destroy(self, instance):
         set_change_reason(instance, self.get_change_reason())
@@ -74,8 +73,7 @@ class NestedParentObjectMixin:
     def _get_parent_object_lookup(self, lookup_names):
         query_dict = self.get_parents_query_dict()
         for lookup in lookup_names:
-            value = query_dict.get(lookup)
-            if value:
+            if value := query_dict.get(lookup):
                 return value
 
     def _get_parent_project(self):
@@ -186,10 +184,7 @@ class OrganizationQuerySetMixin(NestedParentObjectMixin):
         return queryset.none()
 
     def has_admin_permission(self, user, organization):
-        if self.admin_organizations(user).filter(pk=organization.pk).exists():
-            return True
-
-        return False
+        return bool(self.admin_organizations(user).filter(pk=organization.pk).exists())
 
     def admin_organizations(self, user):
         return Organization.objects.for_admin_user(user=user)

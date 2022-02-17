@@ -96,8 +96,9 @@ class LoadConfigTests(TestCase):
             },
         }
 
-        img_settings = DOCKER_IMAGE_SETTINGS.get(self.project.container_image, None)
-        if img_settings:
+        if img_settings := DOCKER_IMAGE_SETTINGS.get(
+            self.project.container_image, None
+        ):
             expected_env_config.update(img_settings)
 
         load_config.assert_called_once_with(

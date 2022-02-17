@@ -29,10 +29,7 @@ class PythonEnvironment:
         self.version = version
         self.project = version.project
         self.build_env = build_env
-        if config:
-            self.config = config
-        else:
-            self.config = load_yaml_config(version)
+        self.config = config or load_yaml_config(version)
         # Compute here, since it's used a lot
         self.checkout_path = self.project.checkout_path(self.version.slug)
         log.bind(

@@ -2,6 +2,7 @@
 
 """Doc build constants."""
 
+
 import structlog
 import re
 
@@ -19,8 +20,7 @@ DOCKER_IMAGE = settings.DOCKER_IMAGE
 DOCKER_IMAGE_SETTINGS = settings.DOCKER_IMAGE_SETTINGS
 DOCKER_LIMITS = settings.DOCKER_LIMITS
 
-old_config = settings.DOCKER_BUILD_IMAGES
-if old_config:
+if old_config := settings.DOCKER_BUILD_IMAGES:
     log.warning(
         'Old config detected, DOCKER_BUILD_IMAGES->DOCKER_IMAGE_SETTINGS',
     )

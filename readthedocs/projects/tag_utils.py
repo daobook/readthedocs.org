@@ -48,8 +48,7 @@ def import_tags(project):
     """
     user = repo = ''
     for regex in GITHUB_REGEXS:
-        match = regex.search(project.repo)
-        if match:
+        if match := regex.search(project.repo):
             user, repo = match.groups()
             break
 
@@ -77,8 +76,7 @@ def import_tags(project):
 
     resp = requests.get(url, headers=headers, params=params)
     if resp.ok:
-        tags = resp.json()['names']
-        if tags:
+        if tags := resp.json()['names']:
             project.tags.set(*tags)
             return tags
         return []

@@ -18,8 +18,7 @@ class CachedResponseMixin:
 
     def dispatch(self, request, *args, **kwargs):
         response = super().dispatch(request, *args, **kwargs)
-        cache_tags = self._get_cache_tags()
-        if cache_tags:
+        if cache_tags := self._get_cache_tags():
             response['Cache-Tag'] = ','.join(cache_tags)
         return response
 

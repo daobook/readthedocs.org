@@ -22,7 +22,7 @@ from readthedocs.proxito import constants
 log = structlog.get_logger(__name__)  # noqa
 
 
-def map_host_to_project_slug(request):  # pylint: disable=too-many-return-statements
+def map_host_to_project_slug(request):    # pylint: disable=too-many-return-statements
     """
     Take the request and map the host to the proper project slug.
 
@@ -83,24 +83,20 @@ def map_host_to_project_slug(request):  # pylint: disable=too-many-return-statem
             request, 'core/dns-404.html', context={'host': host}, status=400
         )
 
-    if external_domain in host:
-        # Serve custom versions on external-host-domain
-        if external_domain_parts == host_parts[1:]:
-            try:
-                project_slug, version_slug = host_parts[0].rsplit('--', 1)
-                request.external_domain = True
-                request.host_version_slug = version_slug
-                log.debug('Proxito External Version Domain.', host=host)
-                return project_slug
-            except ValueError:
-                log.warning('Weird variation on our hostname.', host=host)
-                return render(
-                    request, 'core/dns-404.html', context={'host': host}, status=400
-                )
+    if external_domain in host and external_domain_parts == host_parts[1:]:
+        try:
+            project_slug, version_slug = host_parts[0].rsplit('--', 1)
+            request.external_domain = True
+            request.host_version_slug = version_slug
+            log.debug('Proxito External Version Domain.', host=host)
+            return project_slug
+        except ValueError:
+            log.warning('Weird variation on our hostname.', host=host)
+            return render(
+                request, 'core/dns-404.html', context={'host': host}, status=400
+            )
 
-    # Serve CNAMEs
-    domain = Domain.objects.filter(domain=host).first()
-    if domain:
+    if domain := Domain.objects.filter(domain=host).first():
         project_slug = domain.project.slug
         request.cname = True
         request.domain = domain

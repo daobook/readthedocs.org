@@ -591,14 +591,14 @@ class TestPythonEnvironment(TestCase):
         ]
 
         args_pip = [
-            mock.ANY,  # python path
+            mock.ANY,
             '-m',
             'pip',
             'install',
             '-U',
             '--no-cache-dir',
+            *pip_requirements,
         ]
-        args_pip.extend(pip_requirements)
 
         args_conda = [
             'conda',
@@ -631,14 +631,14 @@ class TestPythonEnvironment(TestCase):
         ]
 
         args_pip = [
-            mock.ANY,  # python path
+            mock.ANY,
             '-m',
             'pip',
             'install',
             '-U',
             '--no-cache-dir',
+            *pip_requirements,
         ]
-        args_pip.extend(pip_requirements)
 
         args_conda = [
             'conda',

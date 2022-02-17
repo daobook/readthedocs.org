@@ -118,10 +118,7 @@ class BuildCommand(BuildCommandResultMixin):
                 )
 
     def __str__(self):
-        # TODO do we want to expose the full command here?
-        output = ''
-        if self.output is not None:
-            output = self.output.encode('utf-8')
+        output = self.output.encode('utf-8') if self.output is not None else ''
         return '\n'.join([self.get_command(), output])
 
     # TODO: remove this `run` method. We are using it on tests, so we need to
@@ -145,11 +142,7 @@ class BuildCommand(BuildCommandResultMixin):
         environment['PATH'] = ':'.join(env_paths)
 
         try:
-            # When using ``shell=True`` the command should be flatten
-            command = self.command
-            if self.shell:
-                command = self.get_command()
-
+            command = self.get_command() if self.shell else self.command
             proc = subprocess.Popen(
                 command,
                 shell=self.shell,

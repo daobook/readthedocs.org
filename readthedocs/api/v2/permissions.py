@@ -102,7 +102,7 @@ class IsAuthorizedToViewVersion(permissions.BasePermission):
     def has_permission(self, request, view):
         project = view._get_project()
         version = view._get_version()
-        has_access = (
+        return (
             Version.objects
             .public(
                 user=request.user,
@@ -112,4 +112,3 @@ class IsAuthorizedToViewVersion(permissions.BasePermission):
             .filter(pk=version.pk)
             .exists()
         )
-        return has_access

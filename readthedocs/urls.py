@@ -125,14 +125,13 @@ debug_urls += [
         'style-catalog/$',
         TemplateView.as_view(template_name='style_catalog.html'),
     ),
-
-    # This must come last after the build output files
     re_path(
         r'^media/(?P<remainder>.+)$',
-        RedirectView.as_view(url=settings.STATIC_URL + '%(remainder)s'),
+        RedirectView.as_view(url=f'{settings.STATIC_URL}%(remainder)s'),
         name='media-redirect',
     ),
 ]
+
 
 # Export URLs
 groups = [

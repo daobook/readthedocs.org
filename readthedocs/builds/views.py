@@ -34,12 +34,10 @@ class BuildBase:
             Project.objects.public(self.request.user),
             slug=self.project_slug,
         )
-        queryset = Build.objects.public(
+        return Build.objects.public(
             user=self.request.user,
             project=self.project,
         ).select_related('project', 'version')
-
-        return queryset
 
 
 class BuildTriggerMixin:
@@ -53,9 +51,7 @@ class BuildTriggerMixin:
             return HttpResponseForbidden()
 
         version_slug = request.POST.get('version_slug')
-        build_pk = request.POST.get('build_pk')
-
-        if build_pk:
+        if build_pk := request.POST.get('build_pk'):
             # Filter over external versions only when re-triggering a specific build
             version = get_object_or_404(
                 Version.external.public(self.request.user),

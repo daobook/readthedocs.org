@@ -179,16 +179,18 @@ class RedirectTests(BaseDocServing):
         r = self.client.get('/', HTTP_HOST='translation.dev.readthedocs.io')
         self.assertEqual(r.status_code, 302)
         self.assertEqual(
-            r['Location'], f'https://project.dev.readthedocs.io/es/latest/',
+            r['Location'], 'https://project.dev.readthedocs.io/es/latest/'
         )
+
         self.assertEqual(r['X-RTD-Redirect'], 'system')
 
     def test_translation_secure_redirect(self):
         r = self.client.get('/', HTTP_HOST='translation.dev.readthedocs.io', secure=True)
         self.assertEqual(r.status_code, 302)
         self.assertEqual(
-            r['Location'], f'https://project.dev.readthedocs.io/es/latest/',
+            r['Location'], 'https://project.dev.readthedocs.io/es/latest/'
         )
+
         self.assertEqual(r['X-RTD-Redirect'], 'system')
 
     # We are not canonicalizing custom domains -> public domain for now

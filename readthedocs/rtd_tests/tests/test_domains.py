@@ -65,9 +65,9 @@ class FormTests(TestCase):
         )
 
         form2 = DomainForm(
-            {'domain': 'test.' + settings.PRODUCTION_DOMAIN},
-            project=self.project,
+            {'domain': f'test.{settings.PRODUCTION_DOMAIN}'}, project=self.project
         )
+
         self.assertFalse(form2.is_valid())
         self.assertEqual(
             form2.errors['domain'][0],
@@ -88,9 +88,9 @@ class FormTests(TestCase):
         )
 
         form2 = DomainForm(
-            {'domain': 'docs.' + settings.PUBLIC_DOMAIN},
-            project=self.project,
+            {'domain': f'docs.{settings.PUBLIC_DOMAIN}'}, project=self.project
         )
+
         self.assertFalse(form2.is_valid())
         self.assertEqual(
             form2.errors['domain'][0],

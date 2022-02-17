@@ -203,10 +203,9 @@ class Version(TimeStampedModel):
     @property
     def ref(self):
         if self.slug == STABLE:
-            stable = determine_stable_version(
+            if stable := determine_stable_version(
                 self.project.versions(manager=INTERNAL).all()
-            )
-            if stable:
+            ):
                 return stable.slug
 
     @property
@@ -264,14 +263,8 @@ class Version(TimeStampedModel):
             return self.project.get_default_branch()
 
         if self.slug == STABLE:
-            if self.type == BRANCH:
-                # Special case, as we do not store the original branch name
-                # that the stable version works on. We can only interpolate the
-                # name from the commit identifier, but it's hacky.
-                # TODO: Refactor ``Version`` to store more actual info about
-                # the underlying commits.
-                if self.identifier.startswith('origin/'):
-                    return self.identifier[len('origin/'):]
+            if self.type == BRANCH and self.identifier.startswith('origin/'):
+                return self.identifier[len('origin/'):]
             return self.identifier
 
         # By now we must have handled all special versions.
@@ -394,19 +387,12 @@ class Version(TimeStampedModel):
 
         :rtype: list
         """
-        paths = []
-
-        for type_ in MEDIA_TYPES:
-            paths.append(
-                self.project.get_storage_path(
+        return [self.project.get_storage_path(
                     type_=type_,
                     version_slug=self.slug,
                     include_file=False,
                     version_type=self.type,
-                )
-            )
-
-        return paths
+                ) for type_ in MEDIA_TYPES]
 
     def get_storage_environment_cache_path(self):
         """Return the path of the cached environment tar file."""
@@ -786,27 +772,20 @@ class Build(models.Model):
         Example: https://readthedocs.org/projects/pip/builds/99999999/
         """
         scheme = 'http' if settings.DEBUG else 'https'
-        full_url = '{scheme}://{domain}{absolute_url}'.format(
+        return '{scheme}://{domain}{absolute_url}'.format(
             scheme=scheme,
             domain=settings.PRODUCTION_DOMAIN,
             absolute_url=self.get_absolute_url()
         )
-        return full_url
 
     def get_version_name(self):
-        if self.version:
-            return self.version.verbose_name
-        return self.version_name
+        return self.version.verbose_name if self.version else self.version_name
 
     def get_version_slug(self):
-        if self.version:
-            return self.version.verbose_name
-        return self.version_name
+        return self.version.verbose_name if self.version else self.version_name
 
     def get_version_type(self):
-        if self.version:
-            return self.version.type
-        return self.version_type
+        return self.version.type if self.version else self.version_type
 
     @property
     def vcs_url(self):
@@ -892,9 +871,7 @@ class Build(models.Model):
 
     @property
     def is_external(self):
-        type = self.version_type
-        if self.version:
-            type = self.version.type
+        type = self.version.type if self.version else self.version_type
         return type == EXTERNAL
 
     @property
@@ -1233,9 +1210,7 @@ class VersionAutomationRule(PolymorphicModel, TimeStampedModel):
             rule.save()
 
     def get_description(self):
-        if self.description:
-            return self.description
-        return f'{self.get_action_display()}'
+        return self.description or f'{self.get_action_display()}'
 
     def get_edit_url(self):
         raise NotImplementedError

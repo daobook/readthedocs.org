@@ -153,9 +153,7 @@ class BuildSerializer(serializers.ModelSerializer):
         exclude = ('builder', '_config')
 
     def get_docs_url(self, obj):
-        if obj.version:
-            return obj.version.get_absolute_url()
-        return None
+        return obj.version.get_absolute_url() if obj.version else None
 
 
 class BuildAdminSerializer(BuildSerializer):

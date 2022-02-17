@@ -118,8 +118,8 @@ class Redirect(models.Model):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        redirect_text = '{type}: {from_to_url}'
         if self.redirect_type in ['prefix', 'page', 'exact']:
+            redirect_text = '{type}: {from_to_url}'
             return redirect_text.format(
                 type=self.get_redirect_type_display(),
                 from_to_url=self.get_from_to_url_display(),
@@ -177,24 +177,22 @@ class Redirect(models.Model):
             log.debug('Redirecting...', redirect=self)
             cut_path = re.sub('^%s' % self.from_url, '', path)
 
-            to = self.get_full_path(
+            return self.get_full_path(
                 filename=cut_path,
                 language=language,
                 version_slug=version_slug,
                 allow_crossdomain=False,
             )
-            return to
 
     def redirect_page(self, path, language=None, version_slug=None):
         if path == self.from_url:
             log.debug('Redirecting...', redirect=self)
-            to = self.get_full_path(
+            return self.get_full_path(
                 filename=self.to_url.lstrip('/'),
                 language=language,
                 version_slug=version_slug,
                 allow_crossdomain=True,
             )
-            return to
 
     def redirect_exact(self, path, language=None, version_slug=None):
         full_path = path
@@ -208,15 +206,14 @@ class Redirect(models.Model):
         if '$rest' in self.from_url:
             match = self.from_url.split('$rest')[0]
             if full_path.startswith(match):
-                cut_path = re.sub('^%s' % match, self.to_url, full_path)
-                return cut_path
+                return re.sub('^%s' % match, self.to_url, full_path)
 
     def redirect_sphinx_html(self, path, language=None, version_slug=None):
         for ending in ['/', '/index.html']:
             if path.endswith(ending):
                 log.debug('Redirecting...', redirect=self)
                 path = path[1:]  # Strip leading slash.
-                to = re.sub(ending + '$', '.html', path)
+                to = re.sub(f'{ending}$', '.html', path)
                 return self.get_full_path(
                     filename=to,
                     language=language,

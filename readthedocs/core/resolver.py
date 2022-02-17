@@ -154,8 +154,7 @@ class ResolverBase:
 
     def resolve_domain(self, project):
         canonical_project = self._get_canonical_project(project)
-        domain = canonical_project.get_canonical_custom_domain()
-        if domain:
+        if domain := canonical_project.get_canonical_custom_domain():
             return domain.domain
 
         if self._use_subdomain():
@@ -258,12 +257,10 @@ class ResolverBase:
         main_project = project
         subproject_slug = None
 
-        main_language_project = main_project.main_language_project
-        if main_language_project:
+        if main_language_project := main_project.main_language_project:
             main_project = main_language_project
 
-        relation = main_project.get_parent_relationship()
-        if relation:
+        if relation := main_project.get_parent_relationship():
             main_project = relation.parent
             subproject_slug = relation.alias
 
@@ -291,10 +288,8 @@ class ResolverBase:
         next_project = None
         if project.main_language_project:
             next_project = project.main_language_project
-        else:
-            relation = project.get_parent_relationship()
-            if relation:
-                next_project = relation.parent
+        elif relation := project.get_parent_relationship():
+            next_project = relation.parent
 
         if next_project and next_project not in projects:
             return self._get_canonical_project(next_project, projects)

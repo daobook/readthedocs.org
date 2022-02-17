@@ -10,6 +10,7 @@ Requires a ``GITHUB_AUTH_TOKEN`` to be set in the environment,
 which should contain a proper GitHub Oauth Token for rate limiting.
 """
 
+
 import os
 
 import requests
@@ -20,10 +21,7 @@ from readthedocs.projects.constants import GITHUB_REGEXS, PROGRAMMING_LANGUAGES
 from readthedocs.projects.models import Project
 
 
-PL_DICT = {}
-
-for slug, name in PROGRAMMING_LANGUAGES:
-    PL_DICT[name] = slug
+PL_DICT = {name: slug for slug, name in PROGRAMMING_LANGUAGES}
 
 
 class Command(BaseCommand):
@@ -41,8 +39,7 @@ class Command(BaseCommand):
             user = repo = ''
             repo_url = project.repo
             for regex in GITHUB_REGEXS:
-                match = regex.search(repo_url)
-                if match:
+                if match := regex.search(repo_url):
                     user, repo = match.groups()
                     break
 

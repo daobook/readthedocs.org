@@ -191,12 +191,11 @@ class RTDFacetedSearch(FacetedSearch):
         if it doesn't contain the syntax from a simple query string,
         and if `self.use_advanced_query` is False.
         """
-        is_single_term = (
+        return (
             not self.use_advanced_query and
             query and len(query.split()) <= 1 and
             not self._is_advanced_query(query)
         )
-        return is_single_term
 
     def _is_advanced_query(self, query):
         """
@@ -340,8 +339,7 @@ class PageSearch(RTDFacetedSearch):
         queries.extend([sections_nested_query, domains_nested_query])
         bool_query = Bool(should=queries)
 
-        projects_query = self._get_projects_query()
-        if projects_query:
+        if projects_query := self._get_projects_query():
             bool_query = Bool(must=[bool_query, projects_query])
 
         final_query = FunctionScore(

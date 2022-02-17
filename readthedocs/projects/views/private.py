@@ -210,18 +210,21 @@ class ProjectVersionEditMixin(ProjectVersionMixin):
 
     def form_valid(self, form):
         version = form.save()
-        if form.has_changed():
-            if 'active' in form.changed_data and version.active is False:
-                log.info(
-                    'Removing files for version.',
-                    version_slug=version.slug,
-                )
-                clean_project_resources(
-                    version.project,
-                    version,
-                )
-                version.built = False
-                version.save()
+        if (
+            form.has_changed()
+            and 'active' in form.changed_data
+            and version.active is False
+        ):
+            log.info(
+                'Removing files for version.',
+                version_slug=version.slug,
+            )
+            clean_project_resources(
+                version.project,
+                version,
+            )
+            version.built = False
+            version.save()
         return HttpResponseRedirect(self.get_success_url())
 
 
@@ -241,18 +244,17 @@ class ProjectVersionDeleteHTML(ProjectVersionMixin, GenericModelView):
 
     def post(self, request, *args, **kwargs):
         version = self.get_object()
-        if not version.active:
-            version.built = False
-            version.save()
-            log.info('Removing files for version.', version_slug=version.slug)
-            clean_project_resources(
-                version.project,
-                version,
-            )
-        else:
+        if version.active:
             return HttpResponseBadRequest(
                 "Can't delete HTML for an active version.",
             )
+        version.built = False
+        version.save()
+        log.info('Removing files for version.', version_slug=version.slug)
+        clean_project_resources(
+            version.project,
+            version,
+        )
         return HttpResponseRedirect(self.get_success_url())
 
 
@@ -301,8 +303,7 @@ class ImportWizardView(ProjectImportMixin, PrivateViewMixin, SessionWizardView):
 
     def get_form_kwargs(self, step=None):
         """Get args to pass into form instantiation."""
-        kwargs = {}
-        kwargs['user'] = self.request.user
+        kwargs = {'user': self.request.user}
         if step == 'basics':
             kwargs['show_advanced'] = True
         return kwargs
@@ -395,8 +396,7 @@ class ImportView(PrivateViewMixin, TemplateView):
         return super().get(request, *args, **kwargs)
 
     def post(self, request, *args, **kwargs):
-        initial_data = {}
-        initial_data['basics'] = {}
+        initial_data = {'basics': {}}
         for key in ['name', 'repo', 'repo_type', 'remote_repository', 'default_branch']:
             initial_data['basics'][key] = request.POST.get(key)
         initial_data['extra'] = {}
@@ -692,11 +692,10 @@ class ProjectTranslationsDelete(ProjectTranslationsMixin, GenericView):
 
     def get_translation(self, slug):
         project = self.get_project()
-        translation = get_object_or_404(
+        return get_object_or_404(
             project.translations,
             slug=slug,
         )
-        return translation
 
 
 class ProjectRedirectsMixin(ProjectAdminMixin, PrivateViewMixin):
@@ -857,9 +856,9 @@ class IntegrationMixin(ProjectAdminMixin, PrivateViewMixin):
         return reverse('projects_integrations', args=[self.get_project().slug])
 
     def get_template_names(self):
-        if self.template_name:
-            return self.template_name
-        return 'projects/integration{}.html'.format(self.template_name_suffix)
+        return self.template_name or 'projects/integration{}.html'.format(
+            self.template_name_suffix
+        )
 
 
 class IntegrationList(IntegrationMixin, ListView):
@@ -1068,8 +1067,7 @@ class SearchAnalyticsBase(ProjectAdminMixin, PrivateViewMixin, TemplateView):
     http_method_names = ['get']
 
     def get(self, request, *args, **kwargs):
-        download_data = request.GET.get('download', False)
-        if download_data:
+        if download_data := request.GET.get('download', False):
             return self._get_csv_data()
         return super().get(request, *args, **kwargs)
 
@@ -1166,8 +1164,7 @@ class TrafficAnalyticsViewBase(ProjectAdminMixin, PrivateViewMixin, TemplateView
     http_method_names = ['get']
 
     def get(self, request, *args, **kwargs):
-        download_data = request.GET.get('download', False)
-        if download_data:
+        if download_data := request.GET.get('download', False):
             return self._get_csv_data()
         return super().get(request, *args, **kwargs)
 

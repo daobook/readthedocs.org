@@ -440,14 +440,13 @@ class TestAutomationRuleMove:
         assert self.project.automation_rules.count() == 6
 
     def _add_rule(self, description):
-        rule = RegexAutomationRule.objects.add_rule(
+        return RegexAutomationRule.objects.add_rule(
             project=self.project,
             description=description,
             match_arg='.*',
             version_type=BRANCH,
             action=VersionAutomationRule.ACTIVATE_VERSION_ACTION,
         )
-        return rule
 
     def test_move_rule_one_step(self):
         self.rule_0.move(1)

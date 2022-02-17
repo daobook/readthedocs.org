@@ -24,8 +24,7 @@ def get_client_ip(request):
     header. If ``HTTP_X_FORWARDED_FOR`` is not found, it returns the value of
     ``REMOTE_ADDR`` header and returns ``None`` if both the headers are not found.
     """
-    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR', None)
-    if x_forwarded_for:
+    if x_forwarded_for := request.META.get('HTTP_X_FORWARDED_FOR', None):
         # HTTP_X_FORWARDED_FOR can be a comma-separated list of IPs.
         # The client's IP will be the first one.
         # (eg. "X-Forwarded-For: client, proxy1, proxy2")

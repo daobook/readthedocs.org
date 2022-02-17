@@ -608,9 +608,7 @@ class UpdateDocsTask(SyncRepositoryMixin, Task):
 
         :param build_pk: Build primary key
         """
-        build = {}
-        if build_pk:
-            build = api_v2.build(build_pk).get()
+        build = api_v2.build(build_pk).get() if build_pk else {}
         private_keys = [
             'project',
             'version',
@@ -651,8 +649,10 @@ class UpdateDocsTask(SyncRepositoryMixin, Task):
 
         self.sync_repo(environment)
 
-        commit = self.data.build_commit or self.get_vcs_repo(environment).commit
-        if commit:
+        if (
+            commit := self.data.build_commit
+            or self.get_vcs_repo(environment).commit
+        ):
             self.data.build['commit'] = commit
 
     def get_build_env_vars(self):
@@ -846,8 +846,7 @@ class UpdateDocsTask(SyncRepositoryMixin, Task):
            ``--quiet`` won't suppress the output,
            it would just remove the progress bar.
         """
-        packages = self.data.config.build.apt_packages
-        if packages:
+        if packages := self.data.config.build.apt_packages:
             self.data.build_env.run(
                 'apt-get', 'update', '--assume-yes', '--quiet',
                 user=settings.RTD_DOCKER_SUPER_USER,

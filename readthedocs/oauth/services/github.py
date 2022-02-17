@@ -144,11 +144,7 @@ class GitHubService(Service):
             repo.avatar_url = fields.get('owner', {}).get('avatar_url')
             repo.default_branch = fields.get('default_branch')
 
-            if repo.private:
-                repo.clone_url = fields['ssh_url']
-            else:
-                repo.clone_url = fields['clone_url']
-
+            repo.clone_url = fields['ssh_url'] if repo.private else fields['clone_url']
             if not repo.avatar_url:
                 repo.avatar_url = self.default_user_avatar_url
 

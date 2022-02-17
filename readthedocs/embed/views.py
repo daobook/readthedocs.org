@@ -32,8 +32,7 @@ log = structlog.get_logger(__name__)
 def escape_selector(selector):
     """Escape special characters from the section id."""
     regex = re.compile(r'(!|"|#|\$|%|\'|\(|\)|\*|\+|\,|\.|\/|\:|\;|\?|@)')
-    ret = re.sub(regex, r'\\\1', selector)
-    return ret
+    return re.sub(regex, r'\\\1', selector)
 
 
 class EmbedAPIBase(CachedResponseMixin, APIView):
@@ -344,22 +343,18 @@ def parse_sphinx(content, section, url):
     return ret, headers, section
 
 
-def parse_mkdocs(content, section, url):  # pylint: disable=unused-argument
+def parse_mkdocs(content, section, url):    # pylint: disable=unused-argument
     """Get the embed content for the section."""
-    ret = []
-    headers = []
-
     if not content or not content.get('content'):
         return (None, None, section)
 
     body = content['content']
-    for element in PQ(body)('h2'):
-        headers.append(recurse_while_none(element))
-
+    headers = [recurse_while_none(element) for element in PQ(body)('h2')]
     if not section and headers:
         # If no section is sent, return the content of the first one
         section = list(headers[0].keys())[0].lower()
 
+    ret = []
     if section:
         body_obj = PQ(body)
         escaped_section = escape_selector(section)
@@ -374,8 +369,7 @@ def parse_mkdocs(content, section, url):  # pylint: disable=unused-argument
             while next_p:
                 if next_p[0].tag == 'h2':
                     break
-                h2_html = next_p.outerHtml()
-                if h2_html:
+                if h2_html := next_p.outerHtml():
                     h2_content += "\n%s\n" % h2_html
                 next_p = next_p.next()
             if h2_content:

@@ -190,10 +190,7 @@ class BuildSerializer(FlexFieldsModelSerializer):
 
         This is needed because ``default=True`` in the model field.
         """
-        if obj.finished:
-            return obj.success
-
-        return None
+        return obj.success if obj.finished else None
 
 
 class VersionLinksSerializer(BaseLinksSerializer):
@@ -324,10 +321,7 @@ class LanguageSerializer(serializers.Serializer):
         return language
 
     def get_name(self, language):
-        for code, name in LANGUAGES:
-            if code == language:
-                return name
-        return 'Unknown'
+        return next((name for code, name in LANGUAGES if code == language), 'Unknown')
 
 
 class ProgrammingLanguageSerializer(serializers.Serializer):
@@ -339,10 +333,14 @@ class ProgrammingLanguageSerializer(serializers.Serializer):
         return programming_language
 
     def get_name(self, programming_language):
-        for code, name in PROGRAMMING_LANGUAGES:
-            if code == programming_language:
-                return name
-        return 'Unknown'
+        return next(
+            (
+                name
+                for code, name in PROGRAMMING_LANGUAGES
+                if code == programming_language
+            ),
+            'Unknown',
+        )
 
 
 class ProjectURLsSerializer(BaseLinksSerializer, serializers.Serializer):

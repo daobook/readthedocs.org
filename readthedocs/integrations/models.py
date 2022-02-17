@@ -88,8 +88,9 @@ class HttpExchangeManager(models.Manager):
             'request_body': request_body,
             'response_body': response_body,
             'response_headers': response_headers,
+            'related_object': related_object,
         }
-        fields['related_object'] = related_object
+
         obj = self.create(**fields)
         self.delete_limit(related_object)
         return obj

@@ -41,8 +41,7 @@ class GoldProjectForm(forms.Form):
 
     def generate_choices(self, active_user):
         queryset = Project.objects.filter(users=active_user)
-        choices = ((proj.slug, str(proj)) for proj in queryset)
-        return choices
+        return ((proj.slug, str(proj)) for proj in queryset)
 
     def clean_project(self):
         project_slug = self.cleaned_data.get('project', '')

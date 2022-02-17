@@ -20,7 +20,4 @@ class BuildMediaStorageTest(BuildMediaFileSystemStorage):
     _existing_files = []
 
     def exists(self, path):
-        if path in self._existing_files:
-            return True
-
-        return False
+        return path in self._existing_files

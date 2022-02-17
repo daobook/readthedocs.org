@@ -118,10 +118,7 @@ def _indexing_helper(html_objs_qs, wipe=False):
         for html_objs in html_objs_qs:
             obj_ids.extend([obj.id for obj in html_objs])
 
-        # removing redundant ids if exists.
-        obj_ids = list(set(obj_ids))
-
-        if obj_ids:
+        if obj_ids := list(set(obj_ids)):
             kwargs = {
                 'app_label': HTMLFile._meta.app_label,
                 'model_name': HTMLFile.__name__,
@@ -145,8 +142,7 @@ def _last_30_days_iter():
 
 def _get_last_30_days_str(date_format='%Y-%m-%d'):
     """Returns the list of dates in string format for previous 30 days (including today)."""
-    last_30_days_str = [
+    return [
         timezone.datetime.strftime(date, date_format)
         for date in _last_30_days_iter()
     ]
-    return last_30_days_str

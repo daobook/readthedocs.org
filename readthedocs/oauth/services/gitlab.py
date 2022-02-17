@@ -54,17 +54,15 @@ class GitLabService(Service):
         See https://docs.gitlab.com/ce/api/README.html#namespaced-path-encoding.
         """
         if project.remote_repository:
-            repo_id = project.remote_repository.remote_id
-        else:
-            # Handle "Manual Import" when there is no RemoteRepository
-            # associated with the project. It only works with gitlab.com at the
-            # moment (doesn't support custom gitlab installations)
-            username, repo = build_utils.get_gitlab_username_repo(project.repo)
-            if (username, repo) == (None, None):
-                return None
+            return project.remote_repository.remote_id
+        # Handle "Manual Import" when there is no RemoteRepository
+        # associated with the project. It only works with gitlab.com at the
+        # moment (doesn't support custom gitlab installations)
+        username, repo = build_utils.get_gitlab_username_repo(project.repo)
+        if (username, repo) == (None, None):
+            return None
 
-            repo_id = quote_plus(f'{username}/{repo}')
-        return repo_id
+        return quote_plus(f'{username}/{repo}')
 
     def get_next_url_to_paginate(self, response):
         return response.links.get('next', {}).get('url')
@@ -222,21 +220,19 @@ class GitLabService(Service):
             if not repo.avatar_url:
                 repo.avatar_url = self.default_user_avatar_url
 
-            if repo.private:
-                repo.clone_url = repo.ssh_url
-            else:
-                repo.clone_url = fields['http_url_to_repo']
-
+            repo.clone_url = repo.ssh_url if repo.private else fields['http_url_to_repo']
             repo.save()
 
             project_access_level = group_access_level = self.PERMISSION_NO_ACCESS
 
-            project_access = fields.get('permissions', {}).get('project_access', {})
-            if project_access:
+            if project_access := fields.get('permissions', {}).get(
+                'project_access', {}
+            ):
                 project_access_level = project_access.get('access_level', self.PERMISSION_NO_ACCESS)
 
-            group_access = fields.get('permissions', {}).get('group_access', {})
-            if group_access:
+            if group_access := fields.get('permissions', {}).get(
+                'group_access', {}
+            ):
                 group_access_level = group_access.get('access_level', self.PERMISSION_NO_ACCESS)
 
             remote_repository_relation.admin = any([

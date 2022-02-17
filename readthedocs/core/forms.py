@@ -91,6 +91,4 @@ class FacetField(forms.MultipleChoiceField):
         Instead, we just validate that the value is in the correct format for
         facet filtering (facet_name:value)
         """
-        if ':' not in value:
-            return False
-        return True
+        return ':' in value

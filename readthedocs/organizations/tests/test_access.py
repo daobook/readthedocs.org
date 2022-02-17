@@ -116,7 +116,6 @@ class OrganizationAccessMixin:
                 data={'user': 'tester'},
                 status_code=302,
             )
-            self.assertEqual(self.organization.owners.count(), 1)
         else:
             self.assertFalse(
                 OrganizationOwner.objects
@@ -126,7 +125,8 @@ class OrganizationAccessMixin:
                 )
                 .exists(),
             )
-            self.assertEqual(self.organization.owners.count(), 1)
+
+        self.assertEqual(self.organization.owners.count(), 1)
 
     def test_organization_members_regression(self):
         """Tests for regression against old member functionality."""
@@ -141,11 +141,8 @@ class OrganizationAccessMixin:
             data={'user': 'tester'},
             status_code=404,
         )
-        if self.is_admin():
+        if self.is_admin() or not self.is_admin():
             self.assertEqual(self.organization.members.count(), 2)
-        else:
-            self.assertEqual(self.organization.members.count(), 2)
-
         self.assertResponse(
             '/organizations/mozilla/members/delete/',
             method=self.client.post,

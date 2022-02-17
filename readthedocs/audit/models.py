@@ -190,8 +190,7 @@ class AuditLog(TimeStampedModel):
         if self.project:
             self.log_project_id = self.project.id
             self.log_project_slug = self.project.slug
-            organization = self.project.organizations.first()
-            if organization:
+            if organization := self.project.organizations.first():
                 self.organization = organization
         if self.organization:
             self.log_organization_id = self.organization.id
@@ -211,10 +210,14 @@ class AuditLog(TimeStampedModel):
             'TemporaryAccessTokenBackend': _('shared link'),
             'TemporaryAccessPasswordBackend': _('shared password'),
         }
-        for name, display in backend_displays.items():
-            if name in backend:
-                return display
-        return ''
+        return next(
+            (
+                display
+                for name, display in backend_displays.items()
+                if name in backend
+            ),
+            '',
+        )
 
     def __str__(self):
         return self.action

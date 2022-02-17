@@ -106,8 +106,7 @@ class ProjectQuerySetBase(models.QuerySet):
         :rtype: int
         """
         max_concurrent_organization = None
-        organization = project.organizations.first()
-        if organization:
+        if organization := project.organizations.first():
             max_concurrent_organization = organization.max_concurrent_builds
 
         return (

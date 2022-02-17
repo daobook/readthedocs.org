@@ -58,8 +58,7 @@ class BaseTestEmbedAPI:
         )
 
     def _get_html_content(self, html_file):
-        section_content = [PyQuery(html_file.open().read()).outerHtml()]
-        return section_content
+        return [PyQuery(html_file.open().read()).outerHtml()]
 
     def test_invalid_arguments(self, client):
         query_params = (
@@ -327,5 +326,4 @@ class TestProxiedEmbedAPI(BaseTestEmbedAPI):
     host = 'project.readthedocs.io'
 
     def get(self, client, *args, **kwargs):
-        r = client.get(*args, HTTP_HOST=self.host, **kwargs)
-        return r
+        return client.get(*args, HTTP_HOST=self.host, **kwargs)

@@ -27,8 +27,7 @@ log = structlog.get_logger(__name__)
 @receiver(user_signed_up)
 def attach_org(sender, request, user, **kwargs):
     """Attach invited user to organization."""
-    team_slug = request.session.get('team')
-    if team_slug:
+    if team_slug := request.session.get('team'):
         team = Team.objects.get(slug=team_slug)
         TeamMember.objects.create(team=team, member=user)
 

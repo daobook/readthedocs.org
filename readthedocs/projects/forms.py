@@ -47,9 +47,12 @@ class ProjectForm(SimpleHistoryModelForm):
 
     def save(self, commit=True):
         project = super().save(commit)
-        if commit:
-            if self.user and not project.users.filter(pk=self.user.pk).exists():
-                project.users.add(self.user)
+        if (
+            commit
+            and self.user
+            and not project.users.filter(pk=self.user.pk).exists()
+        ):
+            project.users.add(self.user)
         return project
 
 
@@ -104,8 +107,7 @@ class ProjectBasicsForm(ProjectForm):
     def save(self, commit=True):
         """Add remote repository relationship to the project instance."""
         instance = super().save(commit)
-        remote_repo = self.cleaned_data.get('remote_repository', None)
-        if remote_repo:
+        if remote_repo := self.cleaned_data.get('remote_repository', None):
             if commit:
                 remote_repo.projects.add(self.instance)
                 remote_repo.save()
@@ -263,9 +265,7 @@ class ProjectAdvancedForm(ProjectTriggerBuildMixin, ProjectForm):
             ),
         )
 
-        active_versions = self.get_all_active_versions()
-
-        if active_versions:
+        if active_versions := self.get_all_active_versions():
             self.fields['default_version'].widget = forms.Select(
                 choices=active_versions,
             )
@@ -294,8 +294,7 @@ class ProjectAdvancedForm(ProjectTriggerBuildMixin, ProjectForm):
         version_qs = self.instance.all_active_versions()
         if version_qs.exists():
             version_qs = sort_version_aware(version_qs)
-            all_versions = [(version.slug, version.verbose_name) for version in version_qs]
-            return all_versions
+            return [(version.slug, version.verbose_name) for version in version_qs]
         return None
 
 
@@ -322,8 +321,7 @@ class UpdateProjectForm(
 
     def clean_language(self):
         language = self.cleaned_data['language']
-        project = self.instance
-        if project:
+        if project := self.instance:
             msg = _(
                 'There is already a "{lang}" translation '
                 'for the {proj} project.',
@@ -332,19 +330,16 @@ class UpdateProjectForm(
                 raise forms.ValidationError(
                     msg.format(lang=language, proj=project.slug),
                 )
-            main_project = project.main_language_project
-            if main_project:
+            if main_project := project.main_language_project:
                 if main_project.language == language:
                     raise forms.ValidationError(
                         msg.format(lang=language, proj=main_project.slug),
                     )
-                siblings = (
-                    main_project.translations
-                    .filter(language=language)
+                if siblings := (
+                    main_project.translations.filter(language=language)
                     .exclude(pk=project.pk)
                     .exists()
-                )
-                if siblings:
+                ):
                     raise forms.ValidationError(
                         msg.format(lang=language, proj=main_project.slug),
                     )
@@ -533,20 +528,16 @@ class TranslationBaseForm(forms.Form):
                 _(msg).format(lang=self.parent.get_language_display()),
             )
 
-        # yapf: disable
-        exists_translation = (
-            self.parent.translations
-            .filter(language=self.translation.language)
-            .exists()
-        )
-        # yapf: enable
-        if exists_translation:
+        if exists_translation := (
+            self.parent.translations.filter(
+                language=self.translation.language
+            ).exists()
+        ):
             msg = ('This project already has a translation for {lang}.')
             raise forms.ValidationError(
                 _(msg).format(lang=self.translation.get_language_display()),
             )
-        is_parent = self.translation.translations.exists()
-        if is_parent:
+        if is_parent := self.translation.translations.exists():
             msg = (
                 'A project with existing translations '
                 'can not be added as a project translation.'
@@ -555,12 +546,11 @@ class TranslationBaseForm(forms.Form):
         return translation_project_slug
 
     def get_translation_queryset(self):
-        queryset = (
+        return (
             Project.objects.for_admin_user(self.user)
             .filter(main_language_project=None)
             .exclude(pk=self.parent.pk)
         )
-        return queryset
 
     def save(self, commit=True):
         if commit:
@@ -592,16 +582,12 @@ class RedirectForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
 
     def save(self, **_):  # pylint: disable=arguments-differ
-        # TODO this should respect the unused argument `commit`. It's not clear
-        # why this needs to be a call to `create`, instead of relying on the
-        # super `save()` call.
-        redirect = Redirect.objects.create(
+        return Redirect.objects.create(
             project=self.project,
             redirect_type=self.cleaned_data['redirect_type'],
             from_url=self.cleaned_data['from_url'],
             to_url=self.cleaned_data['to_url'],
         )
-        return redirect
 
 
 class DomainBaseForm(forms.ModelForm):

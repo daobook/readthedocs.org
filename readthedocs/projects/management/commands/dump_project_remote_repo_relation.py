@@ -33,11 +33,7 @@ class Command(BaseCommand):
         for project_id, slug, remote_repo_json, url, username in queryset.iterator():
             try:
                 json_data = json.loads(remote_repo_json)
-                # GitHub and GitLab uses `id` and Bitbucket uses `uuid`
-                # for the repository id
-                remote_id = json_data.get('id') or json_data.get('uuid')
-
-                if remote_id:
+                if remote_id := json_data.get('id') or json_data.get('uuid'):
                     data.append({
                         'project_id': project_id,
                         'slug': slug,

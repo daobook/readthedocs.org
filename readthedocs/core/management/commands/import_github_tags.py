@@ -20,8 +20,7 @@ class Command(BaseCommand):
                 '[{}/{}] Fetching tags for {}'.format(i + 1, project_total, project.slug)
             )
 
-            tags = import_tags(project)
-            if tags:
+            if tags := import_tags(project):
                 self.stdout.write('Set tags for {}: {}'.format(project.slug, tags))
 
             # Sleeping half a second should keep us under 5k requests/hour

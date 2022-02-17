@@ -186,8 +186,7 @@ class UserSecurityLogView(PrivateViewMixin, ListView):
     days_limit = settings.RTD_AUDITLOGS_DEFAULT_RETENTION_DAYS
 
     def get(self, request, *args, **kwargs):
-        download_data = request.GET.get('download', False)
-        if download_data:
+        if download_data := request.GET.get('download', False):
             return self._get_csv_data()
         return super().get(request, *args, **kwargs)
 
@@ -213,8 +212,7 @@ class UserSecurityLogView(PrivateViewMixin, ListView):
 
         start_date = self._get_start_date()
         end_date = timezone.now().date()
-        date_filter = self.filter.form.cleaned_data.get('date')
-        if date_filter:
+        if date_filter := self.filter.form.cleaned_data.get('date'):
             start_date = date_filter.start or start_date
             end_date = date_filter.stop or end_date
 
@@ -241,12 +239,11 @@ class UserSecurityLogView(PrivateViewMixin, ListView):
         """Return the queryset without filters."""
         user = self.request.user
         start_date = self._get_start_date()
-        queryset = AuditLog.objects.filter(
+        return AuditLog.objects.filter(
             user=user,
             action__in=[AuditLog.AUTHN, AuditLog.AUTHN_FAILURE],
             created__gte=start_date,
         )
-        return queryset
 
     def get_queryset(self):
         """

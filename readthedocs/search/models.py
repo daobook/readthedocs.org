@@ -88,9 +88,7 @@ class SearchQuery(TimeStampedModel):
             for date in _last_30_days_iter()
         ]
 
-        final_data = {
+        return {
             'labels': last_30_days_str,
             'int_data': count_data,
         }
-
-        return final_data

@@ -811,7 +811,10 @@ class APITests(TestCase):
         client = APIClient()
         client.force_authenticate(user=user)
 
-        resp = client.get(f'/api/v2/build/concurrent/', data={'project__slug': project.slug})
+        resp = client.get(
+            '/api/v2/build/concurrent/', data={'project__slug': project.slug}
+        )
+
         self.assertEqual(resp.status_code, 200)
         self.assertDictEqual(expected, resp.data)
 
@@ -1380,8 +1383,9 @@ class IntegrationsTests(TestCase):
         )
         headers = {
             GITHUB_EVENT_HEADER: GITHUB_PUSH,
-            GITHUB_SIGNATURE_HEADER: 'sha1=' + digest,
+            GITHUB_SIGNATURE_HEADER: f'sha1={digest}',
         }
+
         resp = client.post(
             reverse(
                 'api_webhook_github',

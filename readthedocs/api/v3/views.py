@@ -337,10 +337,10 @@ class BuildsCreateViewSet(BuildsViewSet, CreateModelMixin):
         }
 
         if build:
-            data.update({'triggered': True})
+            data['triggered'] = True
             code = status.HTTP_202_ACCEPTED
         else:
-            data.update({'triggered': False})
+            data['triggered'] = False
             code = status.HTTP_400_BAD_REQUEST
         return Response(data=data, status=code)
 

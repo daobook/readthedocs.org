@@ -55,8 +55,9 @@ def build_branches(project, branch_list):
                 project_slug=project.slug,
                 version_slug=version.slug,
             )
-            ret = _build_version(project, version.slug, already_built=to_build)
-            if ret:
+            if ret := _build_version(
+                project, version.slug, already_built=to_build
+            ):
                 to_build.add(ret)
             else:
                 not_building.add(version.slug)
@@ -172,11 +173,11 @@ def deactivate_external_version(project, identifier, verbose_name):
     :returns: verbose_name (pull/merge request number).
     :rtype: str
     """
-    external_version = project.versions(manager=EXTERNAL).filter(
-        verbose_name=verbose_name, identifier=identifier
-    ).first()
-
-    if external_version:
+    if (
+        external_version := project.versions(manager=EXTERNAL)
+        .filter(verbose_name=verbose_name, identifier=identifier)
+        .first()
+    ):
         external_version.active = False
         external_version.save()
         log.info(

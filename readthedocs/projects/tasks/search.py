@@ -265,22 +265,20 @@ def _create_imported_files(*, version, commit, build, search_ranking, search_ign
             # Generate a relative path for storage similar to os.path.relpath
             relpath = full_path.replace(storage_path, '', 1).lstrip('/')
 
-            page_rank = 0
             # Last pattern to match takes precedence
             # XXX: see if we can implement another type of precedence,
             # like the longest pattern.
             reverse_rankings = reversed(list(search_ranking.items()))
-            for pattern, rank in reverse_rankings:
-                if fnmatch(relpath, pattern):
-                    page_rank = rank
-                    break
+            page_rank = next(
+                (
+                    rank
+                    for pattern, rank in reverse_rankings
+                    if fnmatch(relpath, pattern)
+                ),
+                0,
+            )
 
-            ignore = False
-            for pattern in search_ignore:
-                if fnmatch(relpath, pattern):
-                    ignore = True
-                    break
-
+            ignore = any(fnmatch(relpath, pattern) for pattern in search_ignore)
             # Create imported files from new build
             HTMLFile.objects.create(
                 project=version.project,

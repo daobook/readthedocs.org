@@ -202,7 +202,6 @@ class BuildQuerySet(models.QuerySet):
         :rtype: tuple
         :returns: limit_reached, number of concurrent builds, number of max concurrent
         """
-        limit_reached = False
         query = Q(
             project__slug=project.slug,
             # Limit builds to 5 hours ago to speed up the query
@@ -218,10 +217,7 @@ class BuildQuerySet(models.QuerySet):
             # The project has translations, counts their builds as well
             query |= Q(project__in=project.translations.all())
 
-        # If the project belongs to an organization, count all the projects
-        # from this organization as well
-        organization = project.organizations.first()
-        if organization:
+        if organization := project.organizations.first():
             query |= Q(project__in=organization.projects.all())
 
         concurrent = (
@@ -236,8 +232,7 @@ class BuildQuerySet(models.QuerySet):
             concurent=concurrent,
             max_concurrent=max_concurrent,
         )
-        if concurrent >= max_concurrent:
-            limit_reached = True
+        limit_reached = concurrent >= max_concurrent
         return (limit_reached, concurrent, max_concurrent)
 
 

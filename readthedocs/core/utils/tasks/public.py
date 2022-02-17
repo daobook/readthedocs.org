@@ -42,8 +42,8 @@ class PublicTask(Task):
         return state, info
 
     def update_progress_data(self):
-        state, info = self.get_task_data()
         if STATUS_UPDATES_ENABLED:
+            state, info = self.get_task_data()
             self.update_state(state=state, meta=info)
 
     def set_permission_context(self, context):

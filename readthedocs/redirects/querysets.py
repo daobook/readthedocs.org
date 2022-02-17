@@ -86,11 +86,10 @@ class RedirectQuerySet(models.QuerySet):
         # can't think in a case where there can be more at this point. I'm
         # leaving the loop just in case for now
         for redirect in queryset.select_related('project'):
-            new_path = redirect.get_redirect_path(
+            if new_path := redirect.get_redirect_path(
                 path=path,
                 language=language,
                 version_slug=version_slug,
-            )
-            if new_path:
+            ):
                 return new_path, redirect.http_status
         return (None, None)

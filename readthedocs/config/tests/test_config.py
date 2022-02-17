@@ -694,11 +694,7 @@ def test_raise_config_not_supported():
     assert excinfo.value.code == CONFIG_NOT_SUPPORTED
 
 
-@pytest.mark.parametrize(
-    'correct_config_filename',
-    [prefix + 'readthedocs.' + extension for prefix in {'', '.'}
-     for extension in {'yml', 'yaml'}],
-)
+@pytest.mark.parametrize('correct_config_filename', [f'{prefix}readthedocs.{extension}' for prefix in {'', '.'} for extension in {'yml', 'yaml'}])
 def test_config_filenames_regex(correct_config_filename):
     assert re.match(CONFIG_FILENAME_REGEX, correct_config_filename)
 

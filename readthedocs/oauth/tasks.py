@@ -156,12 +156,11 @@ def attach_webhook(project_pk, user_pk, integration=None):
 
     # No valid account found
     if user_accounts:
-        notification.success = False
         notification.reason = AttachWebhookNotification.NO_PERMISSIONS
     else:
-        notification.success = False
         notification.reason = AttachWebhookNotification.NO_ACCOUNTS
 
+    notification.success = False
     project_notification.send()
     notification.send()
     return False

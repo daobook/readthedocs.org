@@ -466,9 +466,7 @@ class BuildConfigV1(BuildConfigBase):
                 settings.DOCKER_IMAGE_SETTINGS[build['image']]
             )
 
-        # Allow to override specific project
-        config_image = self.defaults.get('build_image')
-        if config_image:
+        if config_image := self.defaults.get('build_image'):
             build['image'] = config_image
         return build
 
@@ -602,15 +600,8 @@ class BuildConfigV1(BuildConfigBase):
         """Python related configuration."""
         python = self._config['python']
         requirements = self._config['requirements_file']
-        python_install = []
+        python_install = [PythonInstallRequirements(requirements=requirements)]
 
-        # Always append a `PythonInstallRequirements` option.
-        # If requirements is None, rtd will try to find a requirements file.
-        python_install.append(
-            PythonInstallRequirements(
-                requirements=requirements,
-            ),
-        )
         if python['install_with_pip']:
             python_install.append(
                 PythonInstall(
@@ -808,9 +799,7 @@ class BuildConfigV2(BuildConfigBase):
                 ),
             )
 
-            # Allow to override specific project
-            config_image = self.defaults.get('build_image')
-            if config_image:
+            if config_image := self.defaults.get('build_image'):
                 build['image'] = config_image
 
         build['apt_packages'] = self.validate_apt_packages()
@@ -956,7 +945,7 @@ class BuildConfigV2(BuildConfigBase):
             validate_dict(raw_install)
 
         if 'requirements' in raw_install:
-            requirements_key = key + '.requirements'
+            requirements_key = f'{key}.requirements'
             with self.catch_validation_error(requirements_key):
                 requirements = validate_path(
                     self.pop_config(requirements_key),
@@ -964,7 +953,7 @@ class BuildConfigV2(BuildConfigBase):
                 )
                 python_install['requirements'] = requirements
         elif 'path' in raw_install:
-            path_key = key + '.path'
+            path_key = f'{key}.path'
             with self.catch_validation_error(path_key):
                 path = validate_path(
                     self.pop_config(path_key),
@@ -972,7 +961,7 @@ class BuildConfigV2(BuildConfigBase):
                 )
                 python_install['path'] = path
 
-            method_key = key + '.method'
+            method_key = f'{key}.method'
             with self.catch_validation_error(method_key):
                 method = validate_choice(
                     self.pop_config(method_key, PIP),
@@ -980,7 +969,7 @@ class BuildConfigV2(BuildConfigBase):
                 )
                 python_install['method'] = method
 
-            extra_req_key = key + '.extra_requirements'
+            extra_req_key = f'{key}.extra_requirements'
             with self.catch_validation_error(extra_req_key):
                 extra_requirements = validate_list(
                     self.pop_config(extra_req_key, []),
@@ -1202,15 +1191,14 @@ class BuildConfigV2(BuildConfigBase):
         This should be called after all the validations are done and all keys
         are popped from `self._raw_config`.
         """
-        msg = (
-            'Invalid configuration option: {}. '
-            'Make sure the key name is correct.'
-        )
         # The version key isn't popped, but it's
         # validated in `load`.
         self.pop_config('version', None)
-        wrong_key = '.'.join(self._get_extra_key(self._raw_config))
-        if wrong_key:
+        if wrong_key := '.'.join(self._get_extra_key(self._raw_config)):
+            msg = (
+                'Invalid configuration option: {}. '
+                'Make sure the key name is correct.'
+            )
             self.error(
                 wrong_key,
                 msg.format(wrong_key),
@@ -1244,9 +1232,7 @@ class BuildConfigV2(BuildConfigBase):
 
     @property
     def conda(self):
-        if self._config['conda']:
-            return Conda(**self._config['conda'])
-        return None
+        return Conda(**self._config['conda']) if self._config['conda'] else None
 
     @property
     @lru_cache(maxsize=1)
@@ -1284,21 +1270,15 @@ class BuildConfigV2(BuildConfigBase):
 
     @property
     def sphinx(self):
-        if self._config['sphinx']:
-            return Sphinx(**self._config['sphinx'])
-        return None
+        return Sphinx(**self._config['sphinx']) if self._config['sphinx'] else None
 
     @property
     def mkdocs(self):
-        if self._config['mkdocs']:
-            return Mkdocs(**self._config['mkdocs'])
-        return None
+        return Mkdocs(**self._config['mkdocs']) if self._config['mkdocs'] else None
 
     @property
     def doctype(self):
-        if self.mkdocs:
-            return 'mkdocs'
-        return self.sphinx.builder
+        return 'mkdocs' if self.mkdocs else self.sphinx.builder
 
     @property
     def submodules(self):

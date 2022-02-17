@@ -48,8 +48,7 @@ class SearchViewBase(View):
 
         filters = {}
         for avail_facet in ALL_FACETS:
-            value = getattr(user_input, avail_facet, None)
-            if value:
+            if value := getattr(user_input, avail_facet, None):
                 filters[avail_facet] = value
 
         search_facets = {
@@ -93,8 +92,7 @@ class ProjectSearchView(SearchViewBase):
 
     def _get_project(self, project_slug):
         queryset = Project.objects.public(self.request.user)
-        project = get_object_or_404(queryset, slug=project_slug)
-        return project
+        return get_object_or_404(queryset, slug=project_slug)
 
     def _get_project_data(self, project, version_slug):
         docs_url = project.get_docs_url(version_slug=version_slug)
@@ -102,19 +100,17 @@ class ProjectSearchView(SearchViewBase):
             slug=version_slug,
             docs_url=docs_url,
         )
-        project_data = {
+        return {
             project.slug: ProjectData(
                 alias=None,
                 version=version_data,
             )
         }
-        return project_data
 
     def get_serializer_context(self, project, version_slug):
-        context = {
+        return {
             'projects_data': self._get_project_data(project, version_slug),
         }
-        return context
 
     def get(self, request, project_slug):
         project_obj = self._get_project(project_slug)

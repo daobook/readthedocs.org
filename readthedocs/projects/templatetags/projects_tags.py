@@ -11,9 +11,7 @@ register = template.Library()
 @register.filter
 def sort_version_aware(versions):
     """Takes a list of versions objects and sort them using version schemes."""
-    repo_type = None
-    if versions:
-        repo_type = versions[0].project.repo_type
+    repo_type = versions[0].project.repo_type if versions else None
     return sorted(
         versions,
         key=lambda version: comparable_version(version.verbose_name, repo_type=repo_type),

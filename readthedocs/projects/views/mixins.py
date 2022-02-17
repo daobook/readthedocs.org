@@ -151,5 +151,4 @@ class ProjectImportMixin:
             attach_webhook.si(project.pk, user.pk),
             update_docs,
         )
-        async_result = task_promise.apply_async()
-        return async_result
+        return task_promise.apply_async()

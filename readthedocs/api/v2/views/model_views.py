@@ -88,16 +88,17 @@ class DisableListEndpoint:
         if settings.ALLOW_PRIVATE_REPOS:
             return super().list(*args, **kwargs)
 
-        disabled = True
-
-        # NOTE: keep list endpoint that specifies a resource
-        if any([
+        disabled = not any(
+            [
                 self.basename == 'version' and 'project__slug' in self.request.GET,
                 self.basename == 'build'
-                and ('commit' in self.request.GET or 'project__slug' in self.request.GET),
+                and (
+                    'commit' in self.request.GET
+                    or 'project__slug' in self.request.GET
+                ),
                 self.basename == 'project' and 'slug' in self.request.GET,
-        ]):
-            disabled = False
+            ]
+        )
 
         if not disabled:
             return super().list(*args, **kwargs)

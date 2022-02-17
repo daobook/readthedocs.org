@@ -67,10 +67,9 @@ def get_version_compare_data(project, base_version=None):
         ret_val['slug'] = highest_version_obj.slug
     if base_version and base_version.slug != LATEST:
         try:
-            base_version_comparable = parse_version_failsafe(
+            if base_version_comparable := parse_version_failsafe(
                 base_version.verbose_name,
-            )
-            if base_version_comparable:
+            ):
                 # This is only place where is_highest can get set. All error
                 # cases will be set to True, for non- standard versions.
                 ret_val['is_highest'] = (
@@ -114,8 +113,7 @@ class BaseFooterHTML(CachedResponseMixin, APIView):
     @lru_cache(maxsize=1)
     def _get_project(self):
         project_slug = self.request.GET.get('project', None)
-        project = get_object_or_404(Project, slug=project_slug)
-        return project
+        return get_object_or_404(Project, slug=project_slug)
 
     @lru_cache(maxsize=1)
     def _get_version(self):
@@ -127,20 +125,18 @@ class BaseFooterHTML(CachedResponseMixin, APIView):
             version_slug = LATEST
 
         project = self._get_project()
-        version = get_object_or_404(
+        return get_object_or_404(
             project.versions.all(),
             slug__iexact=version_slug,
         )
-        return version
 
     def _get_active_versions_sorted(self):
         """Get all versions that the user has access, sorted."""
         project = self._get_project()
-        versions = project.ordered_active_versions(
+        return project.ordered_active_versions(
             user=self.request.user,
             include_hidden=False,
         )
-        return versions
 
     def _get_context(self):
         theme = self.request.GET.get('theme', False)
@@ -159,9 +155,9 @@ class BaseFooterHTML(CachedResponseMixin, APIView):
             if version.documentation_type in {SPHINX_HTMLDIR, MKDOCS}:
                 path = re.sub('/index$', '', page_slug) + '/'
             else:
-                path = page_slug + '.html'
+                path = f'{page_slug}.html'
 
-        context = {
+        return {
             'project': project,
             'version': version,
             'path': path,
@@ -203,7 +199,6 @@ class BaseFooterHTML(CachedResponseMixin, APIView):
                 source_suffix,
             ),
         }
-        return context
 
     def get(self, request, format=None):
         project = self._get_project()

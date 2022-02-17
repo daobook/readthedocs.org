@@ -54,8 +54,6 @@ def fake_paths_by_regex(pattern, exists=True):
     regex = re.compile(pattern)
 
     def check(path):
-        if regex.search(path):
-            return exists
-        return None
+        return exists if regex.search(path) else None
 
     return fake_paths(check)

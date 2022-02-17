@@ -1,5 +1,6 @@
 """Public project views."""
 
+
 import hashlib
 import structlog
 import mimetypes
@@ -39,7 +40,7 @@ from ..constants import PRIVATE
 from .base import ProjectOnboardMixin, ProjectSpamMixin
 
 log = structlog.get_logger(__name__)
-search_log = structlog.get_logger(__name__ + '.search')
+search_log = structlog.get_logger(f'{__name__}.search')
 mimetypes.add_type('application/epub+zip', '.epub')
 
 
@@ -118,10 +119,7 @@ class ProjectDetailViewBase(
             versions = filter.qs
         context['versions'] = versions
 
-        protocol = 'http'
-        if self.request.is_secure():
-            protocol = 'https'
-
+        protocol = 'https' if self.request.is_secure() else 'http'
         version_slug = project.get_default_version()
 
         context['badge_url'] = ProjectBadgeView.get_badge_url(
@@ -185,19 +183,13 @@ class ProjectBadgeView(View):
             ).first()
 
         if version:
-            last_build = (
-                version.builds
-                .filter(type='html', state='finished')
+            if last_build := (
+                version.builds.filter(type='html', state='finished')
                 .exclude(status=BUILD_STATUS_DUPLICATED)
                 .order_by('-date')
                 .first()
-            )
-            if last_build:
-                if last_build.success:
-                    status = self.STATUS_PASSING
-                else:
-                    status = self.STATUS_FAILING
-
+            ):
+                status = self.STATUS_PASSING if last_build.success else self.STATUS_FAILING
         return self.serve_badge(request, status)
 
     def get_style(self, request):
@@ -292,9 +284,7 @@ def project_downloads(request, project_slug):
     versions = sort_version_aware(versions)
     version_data = OrderedDict()
     for version in versions:
-        data = version.get_downloads()
-        # Don't show ones that have no downloads.
-        if data:
+        if data := version.get_downloads():
             version_data[version] = data
 
     return render(
@@ -422,8 +412,7 @@ def project_versions(request, project_slug):
     # Limit inactive versions in case a project has a large number of branches or tags
     # Filter inactive versions based on the query string
     inactive_versions = versions.filter(active=False)
-    version_filter = request.GET.get('version_filter', '')
-    if version_filter:
+    if version_filter := request.GET.get('version_filter', ''):
         inactive_versions = inactive_versions.filter(verbose_name__icontains=version_filter)
     total_inactive_versions_count = inactive_versions.count()
     inactive_versions = inactive_versions[:max_inactive_versions]
@@ -434,7 +423,7 @@ def project_versions(request, project_slug):
     wiped = request.GET.get('wipe', '')
     wiped_version = versions.filter(slug=wiped)
     if wiped and wiped_version.exists():
-        messages.success(request, 'Version wiped: ' + wiped)
+        messages.success(request, f'Version wiped: {wiped}')
 
     # Optimize project permission checks
     prefetch_related_objects([project], 'users')

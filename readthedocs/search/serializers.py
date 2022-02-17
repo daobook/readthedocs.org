@@ -85,12 +85,10 @@ class PageSearchSerializer(serializers.Serializer):
         If the result is fetched from the database,
         it's cached into ``projects_data``.
         """
-        project_data = self.context.get('projects_data', {}).get(obj.project)
-        if project_data:
+        if project_data := self.context.get('projects_data', {}).get(obj.project):
             return project_data
 
-        project = Project.objects.filter(slug=obj.project).first()
-        if project:
+        if project := Project.objects.filter(slug=obj.project).first():
             docs_url = project.get_docs_url(version_slug=obj.version)
             project_alias = project.superprojects.values_list('alias', flat=True).first()
 
@@ -107,28 +105,24 @@ class PageSearchSerializer(serializers.Serializer):
         return None
 
     def get_project_alias(self, obj):
-        project_data = self._get_project_data(obj)
-        if project_data:
+        if project_data := self._get_project_data(obj):
             return project_data.alias
         return None
 
     def get_domain(self, obj):
-        full_path = self._get_full_path(obj)
-        if full_path:
+        if full_path := self._get_full_path(obj):
             parsed = urlparse(full_path)
             return f'{parsed.scheme}://{parsed.netloc}'
         return None
 
     def get_path(self, obj):
-        full_path = self._get_full_path(obj)
-        if full_path:
+        if full_path := self._get_full_path(obj):
             parsed = urlparse(full_path)
             return parsed.path
         return None
 
     def _get_full_path(self, obj):
-        project_data = self._get_project_data(obj)
-        if project_data:
+        if project_data := self._get_project_data(obj):
             docs_url = project_data.version.docs_url
             path = obj.full_path
 

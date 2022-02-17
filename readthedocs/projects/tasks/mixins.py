@@ -81,13 +81,12 @@ class SyncRepositoryMixin:
 
         All VCS commands will be executed using `environment`.
         """
-        version_repo = self.data.project.vcs_repo(
+        return self.data.project.vcs_repo(
             version=self.data.version.slug,
             environment=environment,
             verbose_name=self.data.version.verbose_name,
             version_type=self.data.version.type
         )
-        return version_repo
 
     def sync_repo(self, environment):
         """Update the project's repository and hit ``sync_versions`` API."""
@@ -208,10 +207,9 @@ class SyncRepositoryMixin:
 
     def get_rtd_env_vars(self):
         """Get bash environment variables specific to Read the Docs."""
-        env = {
+        return {
             'READTHEDOCS': 'True',
             'READTHEDOCS_VERSION': self.data.version.slug,
             'READTHEDOCS_PROJECT': self.data.project.slug,
             'READTHEDOCS_LANGUAGE': self.data.project.language,
         }
-        return env

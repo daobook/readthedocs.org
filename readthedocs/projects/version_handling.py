@@ -107,8 +107,7 @@ def sort_versions(version_list):
     # have an impact when the project has lot of tags)
     for version_obj in version_list.iterator():
         version_slug = version_obj.verbose_name
-        comparable_version = parse_version_failsafe(version_slug)
-        if comparable_version:
+        if comparable_version := parse_version_failsafe(version_slug):
             versions.append((version_obj, comparable_version))
 
     # sort in-place to avoid leaking memory on projects with lot of versions
@@ -125,8 +124,7 @@ def highest_version(version_list):
 
     :rtype: tupe(readthedocs.builds.models.Version, packaging.version.Version)
     """
-    versions = sort_versions(version_list)
-    if versions:
+    if versions := sort_versions(version_list):
         return versions[0]
     return (None, None)
 
@@ -144,13 +142,11 @@ def determine_stable_version(version_list):
     :rtype: readthedocs.builds.models.Version
     """
     versions = sort_versions(version_list)
-    versions = [
+    if versions := [
         (version_obj, comparable)
         for version_obj, comparable in versions
         if not comparable.is_prerelease
-    ]
-
-    if versions:
+    ]:
         # We take preference for tags over branches. If we don't find any tag,
         # we just return the first branch found.
         for version_obj, comparable in versions:

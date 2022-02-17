@@ -143,18 +143,16 @@ class PageSearchAPIView(CachedResponseMixin, GenericAPIView):
     @lru_cache(maxsize=1)
     def _get_project(self):
         project_slug = self.request.GET.get('project', None)
-        project = get_object_or_404(Project, slug=project_slug)
-        return project
+        return get_object_or_404(Project, slug=project_slug)
 
     @lru_cache(maxsize=1)
     def _get_version(self):
         version_slug = self.request.GET.get('version', None)
         project = self._get_project()
-        version = get_object_or_404(
+        return get_object_or_404(
             project.versions.all(),
             slug=version_slug,
         )
-        return version
 
     def _validate_query_params(self):
         """
@@ -166,13 +164,12 @@ class PageSearchAPIView(CachedResponseMixin, GenericAPIView):
 
         :raises: ValidationError if one of them is missing.
         """
-        errors = {}
         required_query_params = {'q', 'project', 'version'}
         request_params = set(self.request.query_params.keys())
         missing_params = required_query_params - request_params
-        for param in missing_params:
-            errors[param] = [_("This query param is required")]
-        if errors:
+        if errors := {
+            param: [_("This query param is required")] for param in missing_params
+        }:
             raise ValidationError(errors)
 
     @lru_cache(maxsize=1)
@@ -313,13 +310,14 @@ class PageSearchAPIView(CachedResponseMixin, GenericAPIView):
             return []
 
         query = self.request.query_params['q']
-        queryset = PageSearch(
+        return PageSearch(
             query=query,
             projects=projects,
             aggregate_results=False,
-            use_advanced_query=not main_project.has_feature(Feature.DEFAULT_TO_FUZZY_SEARCH),
+            use_advanced_query=not main_project.has_feature(
+                Feature.DEFAULT_TO_FUZZY_SEARCH
+            ),
         )
-        return queryset
 
     def get_serializer_context(self):
         context = super().get_serializer_context()

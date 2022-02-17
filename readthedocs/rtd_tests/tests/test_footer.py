@@ -37,8 +37,7 @@ class BaseTestFooterHTML:
         self.factory = APIRequestFactory()
 
     def render(self):
-        r = self.client.get(self.url)
-        return r
+        return self.client.get(self.url)
 
     def test_footer(self):
         pip = Project.objects.get(slug='pip')

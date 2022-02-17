@@ -78,12 +78,10 @@ class PageView(models.Model):
             pages.append(data[0])
             view_counts.append(data[1])
 
-        final_data = {
+        return {
             'pages': pages,
             'view_counts': view_counts,
         }
-
-        return final_data
 
     @classmethod
     def page_views_by_date(cls, project_slug, since=None):
@@ -122,9 +120,7 @@ class PageView(models.Model):
             for date in _last_30_days_iter()
         ]
 
-        final_data = {
+        return {
             'labels': last_30_days_str,
             'int_data': count_data,
         }
-
-        return final_data

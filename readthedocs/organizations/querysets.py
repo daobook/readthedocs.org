@@ -32,10 +32,12 @@ class BaseOrganizationQuerySet(models.QuerySet):
         :param field: Field name to use in comparison, default: pub_date
         """
         when = timezone.now() - timedelta(days=days)
-        query_filter = {}
-        query_filter[field + '__year'] = when.year
-        query_filter[field + '__month'] = when.month
-        query_filter[field + '__day'] = when.day
+        query_filter = {
+            f'{field}__year': when.year,
+            f'{field}__month': when.month,
+            f'{field}__day': when.day,
+        }
+
         return self.filter(**query_filter)
 
     def subscription_trialing(self):

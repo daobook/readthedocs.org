@@ -45,8 +45,7 @@ class ProjectSendNotificationView(SendNotificationView):
     ]
 
     def get_object_recipients(self, obj):
-        for owner in obj.users.all():
-            yield owner
+        yield from obj.users.all()
 
 
 class ProjectRelationshipInline(admin.TabularInline):
@@ -253,9 +252,11 @@ class ProjectAdmin(ExtraSimpleHistoryAdmin):
     ]
 
     def matching_spam_rules(self, obj):
-        result = []
-        for spam_rule in obj.spam_rules.filter(enabled=True):
-            result.append(f'{spam_rule.spam_rule_type} ({spam_rule.value})')
+        result = [
+            f'{spam_rule.spam_rule_type} ({spam_rule.value})'
+            for spam_rule in obj.spam_rules.filter(enabled=True)
+        ]
+
         return '\n'.join(result) or 'No matching spam rules'
 
     def feature_flags(self, obj):
@@ -408,8 +409,7 @@ class ProjectAdmin(ExtraSimpleHistoryAdmin):
 
     def import_tags_from_vcs(self, request, queryset):
         for project in queryset.iterator():
-            tags = import_tags(project)
-            if tags:
+            if tags := import_tags(project):
                 self.message_user(
                     request,
                     'Imported tags for {}: {}'.format(project, tags),

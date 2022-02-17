@@ -310,9 +310,7 @@ class TeamMember(models.Model):
     objects = TeamMemberManager()
 
     def __str__(self):
-        state = ''
-        if self.is_invite:
-            state = ' (pending)'
+        state = ' (pending)' if self.is_invite else ''
         return '{username} to {team}{state}'.format(
             username=self.username,
             team=self.team,
@@ -333,16 +331,12 @@ class TeamMember(models.Model):
     @property
     def full_name(self):
         """Return member or invite full name."""
-        if self.is_member:
-            return self.member.get_full_name()
-        return ''
+        return self.member.get_full_name() if self.is_member else ''
 
     @property
     def email(self):
         """Return member or invite email address."""
-        if self.is_member:
-            return self.member.email
-        return self.invite.email
+        return self.member.email if self.is_member else self.invite.email
 
     @property
     def is_member(self):

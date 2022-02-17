@@ -64,8 +64,7 @@ class EmbedAPIBase(CachedResponseMixin, APIView):
 
         # TODO: sanitize the cache key just in case, maybe by hashing it
         cache_key = f'embed-api-{url}'
-        cached_response = cache.get(cache_key)
-        if cached_response:
+        if cached_response := cache.get(cache_key):
             log.debug('Cached response.', url=url)
             return cached_response
 
@@ -119,18 +118,15 @@ class EmbedAPIBase(CachedResponseMixin, APIView):
         return self._parse_based_on_doctool(page_content, fragment, doctool, doctoolversion)
 
     def _find_main_node(self, html):
-        main_node = html.css_first('[role=main]')
-        if main_node:
+        if main_node := html.css_first('[role=main]'):
             log.debug('Main node found. selector=[role=main]')
             return main_node
 
-        main_node = html.css_first('main')
-        if main_node:
+        if main_node := html.css_first('main'):
             log.debug('Main node found. selector=main')
             return main_node
 
-        first_header = html.body.css_first('h1')
-        if first_header:
+        if first_header := html.body.css_first('h1'):
             log.debug('Main node found. selector=h1')
             return first_header.parent
 
@@ -154,60 +150,58 @@ class EmbedAPIBase(CachedResponseMixin, APIView):
         if not node:
             return
 
-        if doctool == 'sphinx':
-            # Handle ``dt`` special cases
-            if node.tag == 'dt':
-                if any([
-                        'glossary' in node.parent.attributes.get('class'),
-                        'citation' in node.parent.attributes.get('class'),
-                ]):
-                    # Sphinx HTML structure for term glossary puts the ``id`` in the
-                    # ``dt`` element with the title of the term. In this case, we
-                    # return the parent node which contains the definition list
-                    # and remove all ``dt/dd`` that are not the requested one
+        if doctool == 'sphinx' and node.tag == 'dt':
+            if any([
+                    'glossary' in node.parent.attributes.get('class'),
+                    'citation' in node.parent.attributes.get('class'),
+            ]):
+                # Sphinx HTML structure for term glossary puts the ``id`` in the
+                # ``dt`` element with the title of the term. In this case, we
+                # return the parent node which contains the definition list
+                # and remove all ``dt/dd`` that are not the requested one
 
-                    # Structure:
-                    # <dl class="glossary docutils">
-                    # <dt id="term-definition">definition</dt>
-                    # <dd>Text definition for the term</dd>
-                    # ...
-                    # </dl>
+                # Structure:
+                # <dl class="glossary docutils">
+                # <dt id="term-definition">definition</dt>
+                # <dd>Text definition for the term</dd>
+                # ...
+                # </dl>
 
-                    parent_node = node.parent
-                    if 'glossary' in node.parent.attributes.get('class'):
-                        next_node = node.next
+                parent_node = node.parent
+                if 'glossary' in node.parent.attributes.get('class'):
+                    next_node = node.next
 
-                    elif 'citation' in node.parent.attributes.get('class'):
-                        next_node = node.next.next
+                elif 'citation' in node.parent.attributes.get('class'):
+                    next_node = node.next.next
 
-                    # Iterate over all the siblings (``.iter()``) of the parent
-                    # node and remove ``dt`` and ``dd`` that are not the ones
-                    # we are looking for. Then return the parent node as
-                    # result.
-                    #
-                    # Note that ``.iter()`` returns a generator and we modify
-                    # the HTML in-place, so we have to convert it to a list
-                    # before removing elements. Otherwise we break the
-                    # iteration before completing it
-                    for n in list(parent_node.iter()):  # pylint: disable=invalid-name
-                        if n not in (node, next_node):
-                            n.remove()
-                    node = parent_node
+                # Iterate over all the siblings (``.iter()``) of the parent
+                # node and remove ``dt`` and ``dd`` that are not the ones
+                # we are looking for. Then return the parent node as
+                # result.
+                #
+                # Note that ``.iter()`` returns a generator and we modify
+                # the HTML in-place, so we have to convert it to a list
+                # before removing elements. Otherwise we break the
+                # iteration before completing it
+                for n in list(parent_node.iter()):  # pylint: disable=invalid-name
+                    if n not in (node, next_node):
+                        n.remove()
+                node = parent_node
 
-                else:
-                    # Sphinx HTML structure for definition list puts the ``id``
-                    # the ``dt`` element, instead of the ``dl``. This makes
-                    # the backend to return just the title of the definition. If we
-                    # detect this case, we return the parent with the whole ``dl`` tag
+            else:
+                # Sphinx HTML structure for definition list puts the ``id``
+                # the ``dt`` element, instead of the ``dl``. This makes
+                # the backend to return just the title of the definition. If we
+                # detect this case, we return the parent with the whole ``dl`` tag
 
-                    # Structure:
-                    # <dl class="confval">
-                    # <dt id="confval-config">
-                    # <code class="descname">config</code>
-                    # <a class="headerlink" href="#confval-config">¶</a></dt>
-                    # <dd><p>Text with a description</p></dd>
-                    # </dl>
-                    node = node.parent
+                # Structure:
+                # <dl class="confval">
+                # <dt id="confval-config">
+                # <code class="descname">config</code>
+                # <a class="headerlink" href="#confval-config">¶</a></dt>
+                # <dd><p>Text with a description</p></dd>
+                # </dl>
+                node = node.parent
 
         return node.html
 
@@ -338,10 +332,11 @@ class EmbedAPIBase(CachedResponseMixin, APIView):
 
         response = {
             'url': url,
-            'fragment': fragment if fragment else None,
+            'fragment': fragment or None,
             'content': content,
             'external': external,
         }
+
         log.info(
             'EmbedAPI successful response.',
             project_slug=self.unresolved_url.project.slug if not external else None,

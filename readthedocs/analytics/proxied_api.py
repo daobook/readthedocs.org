@@ -33,18 +33,16 @@ class BaseAnalyticsView(APIView):
     @lru_cache(maxsize=1)
     def _get_project(self):
         project_slug = self.request.GET.get('project')
-        project = get_object_or_404(Project, slug=project_slug)
-        return project
+        return get_object_or_404(Project, slug=project_slug)
 
     @lru_cache(maxsize=1)
     def _get_version(self):
         version_slug = self.request.GET.get('version')
         project = self._get_project()
-        version = get_object_or_404(
+        return get_object_or_404(
             project.versions.all(),
             slug=version_slug,
         )
-        return version
 
     # pylint: disable=unused-argument
     def get(self, request, *args, **kwargs):

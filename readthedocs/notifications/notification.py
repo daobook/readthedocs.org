@@ -63,18 +63,17 @@ class Notification:
         return context
 
     def get_template_names(self, backend_name, source_format=constants.HTML):
-        names = []
         if self.object and isinstance(self.object, models.Model):
             meta = self.object._meta  # pylint: disable=protected-access
-            names.append(
+            return [
                 '{app}/notifications/{name}_{backend}.{source_format}'.format(
                     app=self.app_templates or meta.app_label,
                     name=self.name or meta.model_name,
                     backend=backend_name,
                     source_format=source_format,
-                ),
-            )
-            return names
+                )
+            ]
+
 
         raise AttributeError()
 
@@ -154,16 +153,10 @@ class SiteNotification(Notification):
         return context
 
     def get_message_level(self):
-        if self.success:
-            return self.success_level
-        return self.failure_level
+        return self.success_level if self.success else self.failure_level
 
     def get_message(self, success):
-        if success:
-            message = self.success_message
-        else:
-            message = self.failure_message
-
+        message = self.success_message if success else self.failure_message
         msg = ''  # default message in case of error
         if isinstance(message, dict):
             if self.reason:

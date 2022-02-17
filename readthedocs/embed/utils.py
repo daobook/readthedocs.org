@@ -56,7 +56,7 @@ def clean_links(obj, url, html_raw_response=False):
             # remove the filename (page.html) from the original document URL (base_url) and,
             path, _ = base_url.path.rsplit('/', 1)
             # append the value of href (../../another.html) to the base URL.
-            base_url = base_url._replace(path=path + '/')
+            base_url = base_url._replace(path=f'{path}/')
 
         new_href = base_url.geturl() + href
         link.attrib['href'] = new_href

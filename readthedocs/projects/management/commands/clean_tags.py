@@ -31,9 +31,7 @@ class Command(BaseCommand):
         # Use an iterator so the queryset isn't stored in memory
         # This may take a long time but should be memory efficient
         for i, project in enumerate(Project.objects.iterator()):
-            old_tags_objs = list(project.tags.all())
-
-            if old_tags_objs:
+            if old_tags_objs := list(project.tags.all()):
                 old_tags = sorted([t.name for t in old_tags_objs])
                 old_tag_string = edit_string_for_tags(old_tags_objs)
                 new_tags = parse_tags(old_tag_string)

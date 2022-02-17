@@ -41,7 +41,7 @@ def _pretty_config(instance):
     response = highlight(response, JsonLexer(), formatter)
 
     # Get the stylesheet
-    style = "<style>" + formatter.get_style_defs() + "</style><br>"
+    style = f'<style>{formatter.get_style_defs()}</style><br>'
 
     # Safe the output
     return mark_safe(style + response)

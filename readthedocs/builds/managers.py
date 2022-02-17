@@ -159,12 +159,8 @@ class VersionAutomationRuleManager(PolymorphicManager):
             .order_by('priority')
             .last()
         )
-        if last_priority is None:
-            priority = 0
-        else:
-            priority = last_priority + 1
-
-        rule = self.create(
+        priority = 0 if last_priority is None else last_priority + 1
+        return self.create(
             project=project,
             priority=priority,
             description=description,
@@ -174,7 +170,6 @@ class VersionAutomationRuleManager(PolymorphicManager):
             action=action,
             action_arg=action_arg,
         )
-        return rule
 
 
 class AutomationRuleMatchManager(models.Manager):

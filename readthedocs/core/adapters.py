@@ -58,8 +58,7 @@ class AccountAdapter(DefaultAccountAdapter):
         if not settings.RTD_ALLOW_ORGANIZATIONS:
             return
 
-        invite_id = request.session.get('invite')
-        if invite_id:
+        if invite_id := request.session.get('invite'):
             try:
                 teammember = TeamMember.objects.get(invite__pk=invite_id)
                 teammember.member = user

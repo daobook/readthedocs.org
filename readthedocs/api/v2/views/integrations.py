@@ -203,9 +203,7 @@ class WebhookMixin:
 
         If `sync` is False, the sync isn't triggered and a response indicating so is returned.
         """
-        version = None
-        if sync:
-            version = trigger_sync_versions(project)
+        version = trigger_sync_versions(project) if sync else None
         return {
             'build_triggered': False,
             'project': project.slug,
@@ -345,11 +343,10 @@ class GitHubWebhookView(WebhookMixin, APIView):
             return False
         msg = self.request.body.decode()
         digest = GitHubWebhookView.get_digest(secret, msg)
-        result = hmac.compare_digest(
+        return hmac.compare_digest(
             b'sha1=' + digest.encode(),
             signature.encode(),
         )
-        return result
 
     @staticmethod
     def get_digest(secret, msg):
@@ -714,16 +711,13 @@ class APIWebhookView(WebhookMixin, APIView):
                 )
             except Project.DoesNotExist:
                 pass
-        # Recheck project and integration relationship during token auth check
-        token = self.request.data.get('token')
-        if token:
+        if token := self.request.data.get('token'):
             integration = self.get_integration()
             obj = Project.objects.get(**kwargs)
-            is_valid = (
-                integration.project == obj and
-                token == getattr(integration, 'token', None)
-            )
-            if is_valid:
+            if is_valid := (
+                integration.project == obj
+                and token == getattr(integration, 'token', None)
+            ):
                 return obj
         raise Project.DoesNotExist()
 
